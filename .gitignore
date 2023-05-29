@@ -24,23 +24,22 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-# .idea
+# ignore all .idea/
 .idea/
+
+# ignore all target folder
 target/
-**/target/
-**/out/
+
+# ignore all out folder
 out/
+
+# ignore *.iml
 *.iml
-**/.idea/
 
 
+# root path
+/temp
+/src
 
-pom.xml
-"temp/JavaIO\346\265\201.md"
-"temp/JavaIO\346\265\201/"
-temp/pom.xml
-temp/src/
-src/main/resources/
-src/test/
-target/classes/cn/argentoaskia/proxy/
-target/generated-sources/
+# sub module
+/**/.gitignore
