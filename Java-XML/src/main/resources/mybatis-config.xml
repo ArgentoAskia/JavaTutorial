@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 预处理 -->
+<!-- 文档声明 -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+        <!--PublicId -->
+        <!--SystemId -->
+<mapper namespace="cn.argentoaskia">
+    <!-- CDATA Part -->
+    <sql id="insert" lang="EN">
+        <![CDATA[SELECT 3&2, 2<5, 3>7]]>
+    </sql>
+    <!-- EntityReference -->
+    <sql id="select" databaseId="oracle">
+        SELECT 3&amp;2, 2&lt;5,
+               3&gt;7</sql>
+    <!-- element + whitespace + Attr + Text + Comment-->
+    <select id="selectAll" useCache="true" fetchSize="50">
+        SELECT * FROM staff
+    </select>
+</mapper>
