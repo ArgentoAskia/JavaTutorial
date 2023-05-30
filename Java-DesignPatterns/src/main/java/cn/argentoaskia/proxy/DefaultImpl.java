@@ -1,7 +1,5 @@
 package cn.argentoaskia.proxy;
 
-import Java08.homework.RandomUtil;
-
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,7 +31,9 @@ public class DefaultImpl implements Creatable, Deletable, Readable, Writeable{
     @Override
     public byte[] read(int bufferSize, int readCount) throws IOException {
         int totalRead = bufferSize * readCount;
-        return RandomUtil.randomByteArray(totalRead);
+        byte[] totalBytes = new byte[totalRead];
+        random.nextBytes(totalBytes);
+        return totalBytes;
     }
 
     @Override
