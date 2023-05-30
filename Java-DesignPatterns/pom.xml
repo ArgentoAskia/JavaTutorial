@@ -13,11 +13,6 @@
 
 
     <dependencies>
-        <dependency>
-            <groupId>cn.argentoaskia</groupId>
-            <artifactId>Java-UsfulClass</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <!-- 想要能够获取方法参数，必须指定编译器-parameter属性，
