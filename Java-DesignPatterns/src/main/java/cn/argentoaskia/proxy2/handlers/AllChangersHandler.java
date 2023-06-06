@@ -18,7 +18,6 @@ public class AllChangersHandler implements InvocationHandler {
         services = new AllChangersServices();
         serviceMethodsMapping = new HashMap<>();
         Method[] methods = services.getClass().getMethods();
-        Object
         for (Method method :
                 methods) {
             String name = method.getName();
