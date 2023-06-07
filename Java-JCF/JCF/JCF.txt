@@ -1,0 +1,62 @@
+// 旧的数据结构
+Enumeration（只能遍历）
+Dictionary
+Hashtable
+Properties（KV，加载文件）
+Stack（栈）
+Vector（向量）
+BitSet
+
+// 迭代器
+Iterator（除了遍历+删除节点）
+ListIterator（除了遍历+删除节点+添加节点）
+
+// 所有数据结构，整个JCF框架最最最顶层的接口
+Collection
+// 适配器
+AbstractCollection
+// 常用算法，伴随类，只有静态方法（不绝对），File、Files
+Collections
+
+// 映射Map
+Map
+AbstractMap
+EnumMap
+HashMap
+IdentityHashMap
+LinkedHashMap
+NavigableMap
+SortedMap
+TreeMap
+WeakHashMap
+
+// 集合Set
+Set
+AbstractSet
+EnumSet
+HashSet
+LinkedHashSet
+NavigableSet
+SortedSet
+TreeSet
+
+// 队列
+Queue
+AbstractQueue
+ArrayDeque
+// 循环队列
+Deque
+PriorityQueue
+
+
+// 列表
+List
+AbstractList
+AbstractSequentialList
+ArrayList
+LinkedList
+
+
+
+Arrays
+Collections
