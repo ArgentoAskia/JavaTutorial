@@ -1,12 +1,16 @@
-package demo.list;
+package cn.argento.askia.collections.list;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public class ArrayListDemo {
     private static final  ArrayList<String> stringArrayList = new ArrayList<>();
+
+    /**
+     * 返回一个随机字符串的List
+     * @return
+     */
     private static List<String> randomList(){
         ArrayList<String> arrayList = new ArrayList();
         Random random = new Random();
@@ -16,9 +20,20 @@ public class ArrayListDemo {
         }
         return arrayList;
     }
+
+    /**
+     * 随机字符串
+     * @return
+     */
     private static String uuid(){
         return UUID.randomUUID().toString();
     }
+
+    /**
+     * 打印一个List
+     * @param list
+     * @param listVarName
+     */
     private static void printList(List<?> list, String listVarName){
         Iterator<?> iterator = list.iterator();
         System.out.print("列表" + listVarName + "内有：[");
@@ -74,6 +89,10 @@ public class ArrayListDemo {
         printList(stringArrayList, "stringArrayList");
         // -------------------------------------------------------
     }
+
+    /**
+     * 判别包含的方法
+     */
     private static void methodsContains(){
         // 1.判断列表中是否包含"123"元素
         boolean contains = stringArrayList.contains("123");
@@ -84,6 +103,9 @@ public class ArrayListDemo {
         System.out.println("判断stringArrayList列表中是否包含list列表中的所有元素：" + b2);
     }
 
+    /**
+     * 定位方法
+     */
     private static void methodsIndex(){
         // 1.获取集合中第3个元素,index默认0开始
         String s = stringArrayList.get(2);
@@ -96,6 +118,9 @@ public class ArrayListDemo {
         System.out.println("获取元素456在集合中最后一次出现的位置(index):" + i1);
     }
 
+    /**
+     * 列表成员数量和判定
+     */
     private static void methodJudge(){
         // 1.判断list是否为空
         boolean empty = stringArrayList.isEmpty();
@@ -104,6 +129,10 @@ public class ArrayListDemo {
         int size = stringArrayList.size();
         System.out.println("stringArrayList列表成员数：" + size);
     }
+
+    /**
+     * 成员替换
+     */
     private static void methodReplace(){
         // 1.替换某个位置的元素，返回替换前的元素
         System.out.println("替换前index=4的字符串为：" + stringArrayList.get(4));
@@ -127,6 +156,9 @@ public class ArrayListDemo {
 
     }
 
+    /**
+     * 删除
+     */
     private static void methodRemove(){
         List<String> list2 = new LinkedList<>(stringArrayList);
         list2.add("4234242424");
@@ -179,6 +211,9 @@ public class ArrayListDemo {
         printList(stringArrayList, "stringArrayList");
     }
 
+    /**
+     * 排序
+     */
     public static void methodSortAndSub(){
         System.out.println("排序前");
         printList(stringArrayList, "stringArrayList");
@@ -199,6 +234,10 @@ public class ArrayListDemo {
         // ArrayList专属，缩小预分配的空间
         stringArrayList.trimToSize();
     }
+
+    /**
+     * 转换
+     */
     private static void methodToArray(){
         // 将List转为数组
         Object[] objects = stringArrayList.toArray();
@@ -206,6 +245,10 @@ public class ArrayListDemo {
         System.out.println(Arrays.toString(objects));
         System.out.println(Arrays.toString(strings));
     }
+
+    /**
+     * 迭代！
+     */
     private static void methodIterator(){
         // 作用相同，但是ListIterator可以向前遍历
         Iterator<String> iterator = stringArrayList.iterator();
