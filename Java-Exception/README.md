@@ -1,17 +1,5 @@
 # Java异常（Exception）
 
-这个分支尝试说明`Java`中的异常，并且在**不讲人话的基础上尽一切努力**。所以，如果听不懂，那：
-
-<img src="Java异常/image-20220710220705148.png" alt="image-20220710220705148" style="zoom: 25%;" />
-
-另外文章比较长，后面可能有点小摆烂，**文章可能会有错误的地方，感谢指正。**
-
-原文博客地址：[传送门](https://www.argentoaskia.cn/2022/07/11/Java/Java异常/#more)
-
-喜欢的给个`star`吧，(●'◡'●)😘😘😘
-
-------
-
 ## 什么是异常
 
 在刚刚学习`Java`的时候，我很难去理解这个概念。认为只要我在写代码的时候留多个心眼，做个判断，理论上不就可以避免很多不必要的问题了吗！（比如，在使用对象之前判断一次对象是不是`null`不就行了？），但真正上手代码之后，发现，异常可以说是必不可少的东西。
@@ -32,7 +20,7 @@
 
 ### Error
 
-`Error`类用来描述`Java`运行时**系统内部引起的错误和资源消耗错误**，因为是`Java`内部的错误，一旦遇到，就与`Java`底层有关，程序代码无能为力，只能重启电脑或者重新安装`JDK`
+`Error`类用来描述`Java`运行时**系统内部引起的错误和资源消耗错误**，因为是`Java`内部的错误，常见的有`StackOverflowError`等。
 
 ### Exception
 
@@ -161,7 +149,6 @@ public String importFile(String name) {
 	if(f == null){
 		throw new RuntimeException();	// 抛出异常，之后方法就跳出去了
         // 不会运行到第六行。
-        // 如果有finally代码块，则执行finally代码块
 	}
     return “123123”;
 }
@@ -250,7 +237,7 @@ public fun(){
 
 我们可以通过捕获异常来处理方法抛出的异常，但是并非每一个异常我们都知道怎么去处理。**异常要在适当的时候才去捕获。**
 
-那么什么才算是适当的时候呢？这个问题没有答案。是的你没听过，**原则上只要你知道抛出来的异常要怎么解决，这个时候你才需要去捕获它，否则都应该把异常再次抛出去，让最后一个调用者来考虑如何处理异常。**
+那么什么才算是适当的时候呢？这个问题没有答案。是的你没听错，**原则上只要你知道抛出来的异常要怎么解决，这个时候你才需要去捕获它，否则都应该把异常再次抛出去，让最后一个调用者来考虑如何处理异常。**
 
 同时，由于方法内部可能调用了多个会抛出**检查型异常**的方法，`Java`异常也鼓励高层调用方**抛出高层统一的异常**，因此在传递异常时，可以传递异常的公共父类性，来达到抛出高层异常的需要，见下面的代码：
 
@@ -344,7 +331,7 @@ public FileFormatException extends IOException{
 }
 ```
 
-上面就是最基本的一个异常的定义，实际中，定义异常的时候，可以夹带一些对象或者私活，如：
+上面就是最基本的一个异常的定义，实际中，定义异常的时候，可以夹带一些对象或者私货，如：
 
 ```java
 public FileFormatException extends IOException{
@@ -377,7 +364,7 @@ public FileFormatException extends IOException{
 ```java
 public void formatFile(File file) throws FileFormatException{
 	// 省略代码
-	trow new FileFormatException();
+	throw new FileFormatException();
 }
 
 public void format(String fileName){
@@ -552,7 +539,7 @@ try{
 
 ```java
 public void connection() throws ApplicationRunningException{
-    // 针对情况3
+    // 针对情况1
     try{
         fun1();		// 可能抛出ArrayOutOfBoundsException
         fun2();		// 可能抛出SocketException
@@ -567,9 +554,8 @@ public void connection() throws ApplicationRunningException{
 ```
 
 ```java
-// 针对情况2
 public void connection() throws ApplicationRunningException{
-    // 针对情况3
+    // 针对情况2
     try{
         fun1();		// 抛出高层异常IOException的方法，具体异常不详
     }catch(IOException e){
@@ -620,9 +606,9 @@ public void connection() throws ApplicationRunningException{
 Throwable original = e.getcause();
 ```
 
-便可以获取引发高层的cause
+便可以获取引发高层的`cause`
 
-对，没错，可能有同学已经猜到了，在异常信息底下的`cause by`就和现在介绍的`initCause()`有关。只不过`getCause()`帮你把它单独拿出来而已。
+在异常信息底下的`cause by`就和现在介绍的`initCause()`有关。只不过`getCause()`帮你把它单独拿出来而已。
 
 ![image-20220710205527605](Java异常/image-20220710205527605.png)
 
@@ -797,7 +783,7 @@ try(Resource res = ...){
 
 ### 捕获异常使用
 
-在捕获异常时,**应该尽可能地对抛出异常那一条语句（调用）使用`try...catch`而不包含其他代码**，这样做的好处就是即便抛出了异常也能继续执行想要的代码，否则，过多地包含其他地代码会造成编码时的混乱，在程序变大的时候一旦出bug就非常难受了。**一句话，捕获异常需谨慎！**
+在捕获异常时，**应该尽可能地对抛出异常那一条语句（调用）使用`try...catch`而不包含其他代码**，这样做的好处就是即便抛出了异常也能继续执行想要的代码，否则，过多地包含其他地代码会造成编码时的混乱，在程序变大的时候一旦出bug就非常难受了。**一句话，捕获异常需谨慎！**
 
 ## 2022.7.28补充
 
