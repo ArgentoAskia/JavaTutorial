@@ -6,6 +6,8 @@
 
 如今的`JCF`可不仅仅只有数据结构，甚至还包括了一些常用的算法集，如：二分查找，排序等，这些算法以伴随类的形式存在于`JCF`中。
 
+`JCF`框架中所有的数据结构类都存放在`java.util`包下，在该包下一般存放着所谓的工具类。
+
 在本篇，主要讨论`JCF`中各种数据结构的基本`API`和使用场景，以及一些常用算法的使用，同时，会介绍`Google`对`JCF`进行扩展的框架——`Guava`，最后再简单介绍一下如何在`JCF`中扩展自己的数据结构。
 
 ## JCF数据结构一览
@@ -36,9 +38,9 @@
 
 这些带`Abstract`的类由于历史原因，而被保留下来，按照现在版本`JDK`的实现方式，只要采用接口的`default`级方法即可，而无需额外创建一个`AbstractXXXX`来过滤掉一些方法。
 
-## 迭代器和层级接口
+## 迭代器和顶级接口
 
-在整个`JCF`中，实际上核心的只有两大数据结构顶层接口：`Collection`和`Map`，一种迭代器接口`Iterator`。我们先介绍迭代器：
+在整个`JCF`中，实际上核心的只有两大数据结构顶层接口：`Collection`和`Map`和一种迭代器接口`Iterator`。我们先介绍迭代器：
 
 ### Iterator
 
@@ -110,8 +112,6 @@ while(iterator.hasNext()){
 ```
 
 因为你需要调用`next()`**将待删除的元素排在指针的左边**。
-
-### LinkIterator
 
 ### Iterable
 
@@ -405,6 +405,12 @@ public abstract int size();
 
 因此，为什么创建自己的数据结构的时候，建议继承`AbstractCollection`类，因为你只需要实现两个方法，其他大部分方法都已经写好，但是当你实现`Collection`接口的话，那么接口中的几十个方法你都要考虑具体实现，除非你有比`AbstractCollection`中的默认实现更加高效的实现方式，不然不建议。
 
+### Map
+
+## 二级接口和二级迭代器
+
+### LinkIterator
+
 ### List
 
 `List`接口继承自`Collection`接口，代表数据结构中的列表，除去旧的结构外核心有两种实现：`ArrayList`（数组表）、`LinkedList`（链表）在`List`接口中主要新增的方法有如下：
@@ -501,11 +507,159 @@ public interface Queue<E> extends Collection<E> {
 
 #### ArrayList
 
-`Java`中`ArrayList`的实现是基于数组顺序表，当查看`ArrayList`源代码的时候可以发现`ArrayList`内部实际上维护了一个`Object`类型的数组：
+`Java`中`ArrayList`的实现是基于数组顺序表，其结构实际上就是一个数组：
+
+![image-20230607231758124](README/image-20230607231758124.png)
+
+当查看`ArrayList`源代码的时候可以发现`ArrayList`内部实际上维护了一个`Object`类型的数组和一个整数的`size`变量用于记录数组成员的数量：
 
 ![image-20220726162208097](Java JCF/image-20220726162208097.png)
 
-这便是典型的数组结构顺序表，其优点在于能够实现$O(1)$的元素获取。但在插入、删除、修改元素的时候，就可能要付出$O(n)$的代价来实现。因此，线性表用于参考，**需要经常通过下标的形式来获取数据的，同时，增删改不频繁的时候优先考虑。**
+这便是典型的数组结构顺序表，其优点在于能够实现$O(1)$的元素获取。但在插入、删除、修改元素的时候，就可能要付出$O(n)$的代价来实现。因此，线性表用于参考，**需要经常通过下标的形式来获取数据的，同时，增删改不频繁的时候优先考虑。**下面这张图演示了修改元素之后`ArrayList`的调整步骤：
+
+![image-20230607232152040](README/image-20230607232152040.png)
+
+另外可以看到`elementData`是被标记了`transient`的，意味着你无法对一个`ArrayList`做序列化操作。
+
+还需要注意的是，因为预分配的`elementData`是有明确的大小的，随着我们不断往`ArrayList`中添加元素，**总有填满的一天，这个时候就需要考虑数组的扩容！**
+
+具体的扩容操作方法和元素的增删改查动作会在后面的源码解析中进行说明！
+
+对`ArrayList`的`API`进行分类可以分成：增删改查 + 转换排序 + 判别 + 迭代
+
+几乎所有的`API`的使用你可以参考：`cn.argento.askia.collections.list.ArrayListDemo`
+
+- 添加成员：
+
+  ```java
+  // 添加元素到列表尾部
+  public boolean add(E e);
+  // 在指定的位置添加元素，默认0就是第一个位置
+  public void add(int index, E element);
+  // 把一个集合拼接在另一个集合的后面
+  public boolean addAll(Collection<? extends E> c);
+  // 在一个集合的某个位置拼接另一个集合
+  public boolean addAll(int index, Collection<? extends E> c);
+  ```
+
+- 删除成员：
+
+  ```java
+  // 删除元素，返回true、false代表元素的删除成功还是失败。
+  public boolean remove(Object o);
+  // 移除第X个元素（下标从0开始），返回该元素的内容
+  public E remove(int index);
+  // 移除ArrayList中和参数中集合元素相同的元素,如果ArrayList中元素改变了则返回true
+  public boolean removeAll(Collection<?> c);
+  // 条件移除，满足条件即可删除
+  public boolean removeIf(Predicate<? super E> filter);
+  // 两个集合的交集，会删除ArrayList中的元素，直到让ArrayList等于交集。如果ArrayList内有变动则返回true
+  public boolean retainAll(Collection<?> c);
+  // 清空列表
+  public void clear();
+  ```
+
+- 修改、替换成员：
+
+  ```java
+  // 替换某个位置的元素，返回替换前的元素
+  public E set(int index, E element);
+  // 替换多个
+  public void replaceAll(UnaryOperator<E> operator);
+  ```
+
+- 定位、查询成员：
+
+  ```java
+  // 查询某个下标的成员
+  public E get(int index);
+  // 查询某个成员的最先出现的位置
+  public int indexOf(Object o);
+  // 查询某个成员的最后出现的位置
+  public int lastIndexOf(Object o);
+  // 查询列表成员数
+  public int size();
+  ```
+
+- 判别方法：
+
+  ```java
+  // 判断ArrayList是否为空
+  public boolean isEmpty();
+  // 判断ArrayList是否包含某个成员
+  public boolean contains(Object o);
+  // 判断ArrayList是否包含参数集合里面的所有成员
+  public boolean containsAll(Collection<?> c);
+  ```
+
+- 转换排序子列表等方法：
+
+  ```java
+  // ArrayList排序
+  public void sort(Comparator<? super E> c);
+  // 截取子列表，不包括toIndex
+  public List<E> subList(int fromIndex, int toIndex);
+  // 压缩空间
+  public void trimToSize();
+  // 转换成数组
+  public Object[] toArray();
+  public <T> T[] toArray(T[] a);
+  // 重分配elementData的大小，由开发者指定
+  public void ensureCapacity(int minCapacity);
+  ```
+
+- 迭代器：
+
+  ```java
+  // 正向遍历器
+  public Iterator<E> iterator();
+  // 正反向遍历器
+  public ListIterator<E> listIterator();
+  //函数式遍历成员
+  public void forEach(Consumer<? super E> action);
+  ```
+
+#### LinkedList
+
+`LinkedList`也就是我们常说的链表啦，是基于一个又一个节点，通过在节点上存储下一个节点的引用的方式串联成链的形式组成的列表。
+
+![image-20230607232809488](README/image-20230607232809488.png)
+
+链表一般又可以细分多种实现，如：
+
+- 双链表：如上图的模型便是，节点内除了数据外，还会存放上一跳节点和下一跳节点
+
+- 单链表：全部节点只有上一跳节点或者只有下一跳节点的链表
+
+- 循环链表：最后一个节点的下一跳是头节点的上一跳。
+
+`JCF`中链表采用了双链表实现，链表的一大好处就是可以实现$O(1)$级别的增删替换操作，但是对于随机访问和定位元素，就必须要遍历一遍链表，效率相对不高，因此当需要频繁进行增删改操作时，推荐使用`LinkedList`。
+
+链表的插入（头插、尾插、中插）、删除可以参考下面的动画：
+
+![19161022_632823eeefb757400](README/19161022_632823eeefb757400.gif)
+
+![19161023_632823ef1c0af12471](README/19161023_632823ef1c0af12471.gif)
+
+![19161023_632823ef446b866065](README/19161023_632823ef446b866065.gif)
+
+![19161023_632823ef5729d75925](README/19161023_632823ef5729d75925.gif)
+
+可以看到`LinkedList`底层结构只存放两个节点，一个代表链表的头，一个代表链表的尾，还有一个代表节点的数量：
+
+![image-20230607234444515](README/image-20230607234444515.png)
+
+然后节点的结构也很简单，数据 + 前节点 + 后节点：
+
+![image-20230607235212715](README/image-20230607235212715.png)
+
+同时`LinkedList`还可以充当`Stack`来使用。
+
+
+
+`LinkedList`的`API`和`ArrayList`无区别，在此基础上新增了一些：
+
+
 
 
 
@@ -516,6 +670,18 @@ public interface Queue<E> extends Collection<E> {
 ### Map结构
 
 ### 工具类
+
+
+
+## 自定义数据结构
+
+
+
+## JCF源代码解析（面试题）
+
+
+
+## 第三方数据结构库
 
 
 
