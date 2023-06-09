@@ -529,6 +529,17 @@ public interface Queue<E> extends Collection<E> {
 
 几乎所有的`API`的使用你可以参考：`cn.argento.askia.collections.list.ArrayListDemo`
 
+你可以使用下面的构造方法来创建一个`ArrayList`：
+
+```java
+// 创建一个空的ArrayList
+public ArrayList();
+// 以集合c的元素为基础创建一个ArrayList
+public ArrayList(Collection<? extends E> c);
+// 指定初始数据数组大小的ArrayList
+public ArrayList(int initialCapacity);
+```
+
 - 添加成员：
 
   ```java
@@ -653,17 +664,85 @@ public interface Queue<E> extends Collection<E> {
 
 ![image-20230607235212715](README/image-20230607235212715.png)
 
-同时`LinkedList`还可以充当`Stack`来使用。
+同时`LinkedList`还可以充当`Stack`、`Queue`（队列）、`Deque`（双向队列）来使用。
 
+`LinkedList`的`API`和`ArrayList`无区别，在`ArrayList`的基础上新增了`Stack`、`Queue`的方法：
 
+- 添加成员：
 
-`LinkedList`的`API`和`ArrayList`无区别，在此基础上新增了一些：
+  ```java
+  // 在链表头前面插入
+  public void addFirst(E e);
+  // 在链表尾后面插入
+  public void addLast(E e);
+  ```
 
+- 删除成员：
 
+  ```java
+  // 移除第一个元素
+  public E remove();
+  public E removeFirst();
+  // 移除最后一个元素
+  public E removeLast();
+  
+  // 在LinkedList中移除首次出现的参数o元素
+  public boolean removeFirstOccurrence(Object o);
+  // 在LinkedList中移除最后一次出现的参数o元素
+  public boolean removeLastOccurrence(Object o);
+  ```
 
+- 查询、获取元素：
 
+  ```java
+  // 只获取队首元素
+  public E element();
+  public E getFirst();
+  // 获只取队尾元素
+  public E getLast();
+  ```
+
+- 迭代器：
+
+  ```java
+  // 降级迭代器?
+  public Iterator<E> descendingIterator();
+  // 链式迭代器
+  public ListIterator<E> listIterator(int index)
+  ```
+
+- `Stack`方法：
+
+  ```java
+  // 获取Stack、队首的元素但是不移除该元素
+  public E peek();
+  public E peekFirst();
+  // 获取Stack、队尾的元素但是不移除该元素
+  public E peekLast();
+  // 弹栈
+  public E pop();
+  // 压栈
+  public void push(E e);
+  ```
+
+- `queue`、`deque`方法：
+
+  ```java
+  // 在队尾添加元素,注意offerLast一定返回true，无论是否添加成功
+  public boolean offer(E e);
+  public boolean offerLast(E e);
+  // 在队首添加元素
+  public boolean offerFirst(E e);
+  // 获取Stack、队首的元素并移出队列
+  public E poll();
+  public E pollFirst();
+  // 获取Stack、队尾的元素并移出队列
+  public E pollLast();
+  ```
 
 ### Set结构
+
+
 
 ### Queue结构
 
