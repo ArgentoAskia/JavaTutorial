@@ -1,8 +1,6 @@
 package cn.argentoaskia.demo;
 
 
-import Java08.homework.RandomUtil;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,11 +28,12 @@ public class ByteArrayOutputStreamDemo {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         for (int i = 0; i < receiveSize; i = i + partSize) {
-            partSize = RandomUtil.randomInt(20, 50);
+            partSize = 20 + random.nextInt(31);
             if (i + partSize > receiveSize){
                 partSize = receiveSize - i;
             }
-            byte[] bytes = RandomUtil.randomByteArray(partSize);
+            byte[] bytes = new byte[partSize];
+            random.nextBytes(bytes);
             byteArrayOutputStream.write(bytes);
             // 若想获取流当前存入了多少个字节，可以使用size()方法
             int size = byteArrayOutputStream.size();
