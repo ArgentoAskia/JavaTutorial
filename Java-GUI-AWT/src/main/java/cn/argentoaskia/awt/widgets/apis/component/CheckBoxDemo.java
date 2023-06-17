@@ -1,6 +1,4 @@
-package cn.argentoaskia.awt.widgets.component;
-
-import com.sun.tools.javac.comp.Check;
+package cn.argentoaskia.awt.widgets.apis.component;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;

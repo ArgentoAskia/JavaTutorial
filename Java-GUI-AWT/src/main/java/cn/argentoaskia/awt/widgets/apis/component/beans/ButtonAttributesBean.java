@@ -1,4 +1,4 @@
-package cn.argentoaskia.awt.widgets.component.beans;
+package cn.argentoaskia.awt.widgets.apis.component.beans;
 
 import javax.swing.*;
 import java.awt.*;

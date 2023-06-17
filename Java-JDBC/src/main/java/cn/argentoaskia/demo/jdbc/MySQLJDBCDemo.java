@@ -52,8 +52,8 @@ public class MySQLJDBCDemo {
 
         // TODO: 2022/8/11
         //  4.获取statement，也叫SQL执行器，常用的：
-        //     - PreparedStatement： 预处理SQL执行器
-        //     - Statement：         基本SQL执行器
+        //     - PreparedStatement： 预处理SQL执行器:insert、delete、update
+        //     - Statement：         基本SQL执行器：create、alter、drop
         //     - CallableStatement： 存储过程执行器
         //    使用SQL执行器之前需要编写SQL语句。
         String sql = "SELECT * FROM user";
@@ -94,7 +94,6 @@ public class MySQLJDBCDemo {
             System.out.println(host);
             System.out.println(user);
         }
-
         /*
         while(resultSet1.next()){
             String host = resultSet1.getString(1);

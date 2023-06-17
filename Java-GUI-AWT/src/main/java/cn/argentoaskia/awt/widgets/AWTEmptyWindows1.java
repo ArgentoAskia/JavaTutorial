@@ -1,10 +1,12 @@
-package cn.argentoaskia.awt;
+package cn.argentoaskia.awt.widgets;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-
+/**
+ * this example shows how to build a window！
+ */
 public class AWTEmptyWindows1 extends Frame {
     public AWTEmptyWindows1(){
         // 设置窗口显示位置和大小

@@ -1,9 +1,7 @@
-package cn.argentoaskia.awt.widgets.component;
+package cn.argentoaskia.awt.widgets.apis.component;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.dnd.DropTarget;
-import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 

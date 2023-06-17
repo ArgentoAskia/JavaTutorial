@@ -1,13 +1,10 @@
-package cn.argentoaskia.awt.widgets.component;
+package cn.argentoaskia.awt.widgets.apis.component;
 
-import cn.argentoaskia.awt.AWTEmptyWindows1;
 import com.sun.deploy.uitoolkit.impl.awt.AWTAnimationPanel2;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 
 /**
  * AWTAnimationPanel2,Canvas动画演示
