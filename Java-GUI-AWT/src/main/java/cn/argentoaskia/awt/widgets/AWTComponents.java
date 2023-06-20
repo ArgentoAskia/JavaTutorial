@@ -1,10 +1,13 @@
 package cn.argentoaskia.awt.widgets;
 
-import com.sun.deploy.uitoolkit.impl.awt.AWTAnimationPanel2;
-
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Random;
 import java.util.Timer;
@@ -41,8 +44,11 @@ public class AWTComponents extends Frame {
 
     // textField panel
     private Panel textFieldPanel;
+
+    private Panel animationPanel;
     // 第一步，创建所有组件
     private void createPanels(){
+        animationPanel = new Panel();
         buttonsPanel = new Panel();
         checkBoxPanel = new Panel();
         checkBoxPanel2 = new Panel();
@@ -65,6 +71,8 @@ public class AWTComponents extends Frame {
         scrollbarsPanel.setLayout(new BoxLayout(scrollbarsPanel, BoxLayout.Y_AXIS));
         textAreaPanel.setLayout(new BorderLayout());
         textFieldPanel.setLayout(new GridLayout(6, 1, 5, 5));
+        animationPanel.setLayout(new BorderLayout());
+        animationPanel.setBackground(Color.cyan);
     }
     // 第三步，布局所有组件
     private void layoutPanel(){
@@ -81,7 +89,7 @@ public class AWTComponents extends Frame {
     }
 
     // 9大组件库：button、canvas、checkbox、choice、label、list、scrollbar、textarea、textfield
-    private Random random;
+    private Random random = new Random();
     // 按钮
     private Button[] buttons;
     // canvas绘图
@@ -276,10 +284,45 @@ public class AWTComponents extends Frame {
         textFields[4].setFont(font);
 
     }
+
+    private Image[] birdImage;
+    private Image currentImage;
+    private int index;
+    private int x = 0;
+    private Class<?> AWTAnimationPanel2Class;
     private void initCanvas(){
-        canvas = new AWTAnimationPanel2();
-        random = new Random();
-        ((AWTAnimationPanel2)canvas).startAnimation();
+        try {
+            AWTAnimationPanel2Class = Class.forName("com.sun.deploy.uitoolkit.impl.awt.AWTAnimationPanel2");
+            canvas = (Canvas) AWTAnimationPanel2Class.newInstance();
+            Method startAnimationMethod = AWTAnimationPanel2Class.getMethod("startAnimation");
+            startAnimationMethod.invoke(canvas);
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//
+        birdImage = new BufferedImage[8];
+        for (int i = 0; i < 8; i++) {
+            URL resource = AWTComponents.class.getResource("/images/" + i + ".png");
+            try {
+                birdImage[i] = ImageIO.read(resource);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        currentImage = birdImage[0];
+        index = 0;
+        //  bird flying
+        canvas = new Canvas(){
+            @Override
+            public void paint(Graphics g) {
+                if (x > getWidth()){
+                    x = 0;
+                }
+                g.drawImage(currentImage,x , 50, null);
+                x = x +10;
+            }
+        };
     }
 
     // 第五步 初始化组件
@@ -360,7 +403,8 @@ public class AWTComponents extends Frame {
             labelsPanel.add(label);
         }
         textAreaPanel.add(textArea);
-        canvas.setBounds(320, 30, 300, 200);
+
+        animationPanel.add(canvas);
     }
 
     // 第七步 窗口设置
@@ -371,11 +415,15 @@ public class AWTComponents extends Frame {
         // 网格布局
         GridLayout gridLayout = new GridLayout();
         // 4行3列
-        gridLayout.setColumns(3);
+        gridLayout.setColumns(1);
         gridLayout.setRows(4);
         gridLayout.setVgap(20);
         gridLayout.setHgap(20);
         setLayout(gridLayout);
+        Box horizontalBox1 = Box.createHorizontalBox();
+        Box horizontalBox2 = Box.createHorizontalBox();
+        Box horizontalBox3 = Box.createHorizontalBox();
+
         // 添加按钮组
         Panel buttonMainPanel = new Panel();
         buttonMainPanel.setLayout(new BorderLayout());
@@ -384,7 +432,6 @@ public class AWTComponents extends Frame {
         Font font = new Font(null, Font.BOLD, 20);
         buttonGroupMsg.setFont(font);
         buttonMainPanel.add(buttonGroupMsg, BorderLayout.SOUTH);
-        add(buttonMainPanel);
 
         Panel checkBoxMainPanel = new Panel();
         checkBoxMainPanel.setLayout(new BorderLayout());
@@ -392,23 +439,84 @@ public class AWTComponents extends Frame {
         Label checkBoxGroupMsg = new Label("单选框组件", Label.CENTER);
         checkBoxGroupMsg.setFont(font);
         checkBoxMainPanel.add(checkBoxGroupMsg, BorderLayout.SOUTH);
-        add(checkBoxMainPanel);
+
+        Panel multiCheckBoxMainPanel = new Panel();
+        multiCheckBoxMainPanel.setLayout(new BorderLayout());
+        multiCheckBoxMainPanel.add(checkBoxPanel2, BorderLayout.CENTER);
+        Label multiCheckBoxGroupMsg = new Label("复选框组件", Label.CENTER);
+        multiCheckBoxGroupMsg.setFont(font);
+        multiCheckBoxMainPanel.add(multiCheckBoxGroupMsg, BorderLayout.SOUTH);
 
 
+        // group
+        horizontalBox1.add(buttonMainPanel);
+        horizontalBox1.add(Box.createHorizontalStrut(20));
+        horizontalBox1.add(checkBoxMainPanel);
+        horizontalBox1.add(Box.createHorizontalStrut(20));
+        horizontalBox1.add(multiCheckBoxMainPanel);
+        add(horizontalBox1);
 
+        Panel choiceMainPanel = new Panel();
+        choiceMainPanel.setLayout(new BorderLayout());
+        choiceMainPanel.add(choicesPanel, BorderLayout.CENTER);
+        Label choiceGroupMsg = new Label("下拉列表组件", Label.CENTER);
+        choiceGroupMsg.setFont(font);
+        choiceMainPanel.add(choiceGroupMsg, BorderLayout.SOUTH);
 
-        add(checkBoxPanel2);
-        add(choicesPanel);
-        add(labelsPanel);
-        add(listPanel);
-        add(scrollbarsPanel);
-        add(textAreaPanel);
-        add(textFieldPanel);
+        Panel labelMainPanel = new Panel();
+        labelMainPanel.setLayout(new BorderLayout());
+        labelMainPanel.add(labelsPanel, BorderLayout.CENTER);
+        Label labelGroupMsg = new Label("标签组件", Label.CENTER);
+        labelGroupMsg.setFont(font);
+        labelMainPanel.add(labelGroupMsg, BorderLayout.SOUTH);
+
+        Panel listMainPanel = new Panel();
+        listMainPanel.setLayout(new BorderLayout());
+        listMainPanel.add(listPanel, BorderLayout.CENTER);
+        Label listGroupMsg = new Label("列表组件", Label.CENTER);
+        listGroupMsg.setFont(font);
+        listMainPanel.add(listGroupMsg, BorderLayout.SOUTH);
+
+        horizontalBox2.add(choiceMainPanel);
+        horizontalBox2.add(Box.createHorizontalStrut(20));
+        horizontalBox2.add(labelMainPanel);
+        horizontalBox2.add(Box.createHorizontalStrut(20));
+        horizontalBox2.add(listMainPanel);
+        add(horizontalBox2);
+
+        Panel scrollbarsMainPanel = new Panel();
+        scrollbarsMainPanel.setLayout(new BorderLayout());
+        scrollbarsMainPanel.add(scrollbarsPanel, BorderLayout.CENTER);
+        Label scrollbarsGroupMsg = new Label("滑块条组件", Label.CENTER);
+        scrollbarsGroupMsg.setFont(font);
+        scrollbarsMainPanel.add(scrollbarsGroupMsg, BorderLayout.SOUTH);
+
+        Panel textAreaMainPanel = new Panel();
+        textAreaMainPanel.setLayout(new BorderLayout());
+        textAreaMainPanel.add(textAreaPanel, BorderLayout.CENTER);
+        Label textAreaGroupMsg = new Label("文本域组件", Label.CENTER);
+        textAreaGroupMsg.setFont(font);
+        textAreaMainPanel.add(textAreaGroupMsg, BorderLayout.SOUTH);
+
+        Panel textFieldMainPanel = new Panel();
+        textFieldMainPanel.setLayout(new BorderLayout());
+        textFieldMainPanel.add(textFieldPanel, BorderLayout.CENTER);
+        Label textFieldGroupMsg = new Label("列表组件", Label.CENTER);
+        textFieldGroupMsg.setFont(font);
+        textFieldMainPanel.add(textFieldGroupMsg, BorderLayout.SOUTH);
+
+        horizontalBox3.add(scrollbarsPanel);
+        horizontalBox3.add(Box.createHorizontalStrut(20));
+        horizontalBox3.add(textAreaPanel);
+        horizontalBox3.add(Box.createHorizontalStrut(20));
+        horizontalBox3.add(textFieldPanel);
+        add(horizontalBox3);
+
+        add(animationPanel);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ((AWTAnimationPanel2)canvas).stopAnimation();
-                timer.cancel();
+                stopAnimation();
                 System.exit(0);
             }
         });
@@ -465,7 +573,7 @@ public class AWTComponents extends Frame {
     private MenuItem showSaveFileMenuItem;
 
     public void initMenu(){
-        // TODO: 2023/6/17  windows 10 21H系统测试：setShortcut()设置快捷键无法生效！
+        //  TODO: 2023/6/17  windows 10 21H系统测试：setShortcut()设置快捷键无法生效！
         menuBar = new MenuBar();
         componentsMenu = new Menu("组件设置菜单(L)", true);
         componentsMenu.setShortcut(new MenuShortcut(KeyEvent.VK_L, true));
@@ -552,38 +660,81 @@ public class AWTComponents extends Frame {
     private void runAnimation(){
         // 定时器，让Canvas动画动起来
         timer = new Timer();
-        MyCanvasController myCanvasController = new MyCanvasController((AWTAnimationPanel2) canvas);
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                myCanvasController.run();
+        if (AWTAnimationPanel2Class != null && AWTAnimationPanel2Class.isInstance(canvas)){
+            MyCanvasController myCanvasController = new MyCanvasController(canvas);
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    myCanvasController.run();
+                }
+            };
+            int run = 300 + random.nextInt(700);
+            System.out.println(run);
+            timer.schedule(timerTask, 100, run);
+        }else{
+            BirdCanvasController birdCanvasController = new BirdCanvasController(canvas);
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    birdCanvasController.run();
+                }
+            };
+            timer.schedule(timerTask, 100, 100);
+        }
+    }
+
+    private void stopAnimation(){
+        if (AWTAnimationPanel2Class != null && AWTAnimationPanel2Class.isInstance(canvas)){
+            try {
+                Method stopAnimation = AWTAnimationPanel2Class.getMethod("stopAnimation");
+                stopAnimation.invoke(canvas);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        };
-        int run = 300 + random.nextInt(700);
-        System.out.println(run);
-        timer.schedule(timerTask, 100, run);
+        }
+        timer.cancel();
+
     }
     // canvas动画控制器
     class MyCanvasController implements Runnable{
-        private AWTAnimationPanel2 awtAnimationPanel2;
+        private Canvas awtAnimationPanel2;
 
-        public MyCanvasController(AWTAnimationPanel2 awtAnimationPanel2){
+        public MyCanvasController(Canvas awtAnimationPanel2){
             this.awtAnimationPanel2 = awtAnimationPanel2;
         }
         @Override
         public void run() {
-            float progressValue = awtAnimationPanel2.getProgressValue();
-            DecimalFormat decimalFormat = new DecimalFormat("#.#");
-            String progressValueStr = decimalFormat.format(progressValue);
-            if (Float.valueOf(progressValueStr).equals(1.0f)){
-                awtAnimationPanel2.setProgressValue(0.0f);
-            } else {
-                progressValue = progressValue + 0.1f;
-                String format = decimalFormat.format(progressValue);
-                Float aFloat = Float.valueOf(format);
-                System.out.println(aFloat);
-                awtAnimationPanel2.setProgressValue(aFloat);
+            try {
+                Method getProgressValue = AWTAnimationPanel2Class.getMethod("getProgressValue");
+                Method setProgressValue = AWTAnimationPanel2Class.getMethod("setProgressValue", float.class);
+                float progressValue = (float) getProgressValue.invoke(awtAnimationPanel2);
+                DecimalFormat decimalFormat = new DecimalFormat("#.#");
+                String progressValueStr = decimalFormat.format(progressValue);
+                if (Float.valueOf(progressValueStr).equals(1.0f)){
+                    setProgressValue.invoke(awtAnimationPanel2, 0.0f);
+                } else {
+                    progressValue = progressValue + 0.1f;
+                    String format = decimalFormat.format(progressValue);
+                    Float aFloat = Float.valueOf(format);
+                    System.out.println(aFloat);
+                    setProgressValue.invoke(awtAnimationPanel2, aFloat);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
+    }
+    class BirdCanvasController implements Runnable{
+        private Canvas canvas;
+        private BirdCanvasController(Canvas canvas){
+            this.canvas = canvas;
+        }
+        @Override
+        public void run() {
+            index++;
+//            int a = index / 10;
+            currentImage = birdImage[index % 8];
+            canvas.repaint();
         }
     }
 
