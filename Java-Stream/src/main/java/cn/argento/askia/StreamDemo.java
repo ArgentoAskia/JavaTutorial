@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class StreamDemo {
@@ -74,6 +75,9 @@ public class StreamDemo {
             e.printStackTrace();
         }
         floatStream = Stream.of(4.5F, 5.6F, 6.7F);
+
+        // 6.JCF框架中各种集合类型的Stream()
+
 
 
     }
