@@ -29,6 +29,6 @@ A sequence of elements supporting sequential and parallel aggregate operations.
 
 在所有`XXXStream`类中，一般都包含了三类操作：
 
-1. 创建流操作：创建一个流，`Stream`类中提供了很多静态方法来创建流，但是也有很多不靠`Stream`类的静态方法来创建的流，如`JCF`框架中各种集合的`Stream()`方法，`Random`类中的各种`XXXStream()`
+1. 创建流操作：创建一个流，`Stream`类中提供了很多静态方法来创建流，但是也有很多不靠`Stream`类的静态方法来创建的流，如`JCF`框架中各种集合的`Stream()`方法，`Random`类中的各种如：`ints()`、`longs()`等方法
 2. 中间流操作：如对流进行过滤、截断，转换等操作，**返回的仍然是一个**`Stream`**对象**，用于做进一步数据加工处理。
 3. 终止流操作：如对流元素取最大值、最小值、统计符合条件的元素个数等，在执行完这些操作之后意味着流中数据要停止流动，**因此终止流方法返回值肯定不是**`Stream`**对象而是一个结果！**
