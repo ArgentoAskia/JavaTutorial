@@ -12,7 +12,7 @@ import java.util.zip.Checksum;
 public class CheckedInputStreamDemo {
     public static void main(String[] args) throws Exception{
         // 1.参数1：inputstream 2.参数Checksum，检测方法：Adler32、CRC32
-        InputStream data = InputStreamDemo.class.getResourceAsStream("/data.txt");
+        InputStream data = InputStreamDemo.class.getResourceAsStream("/CheckedStream/data.txt");
         Adler32 adler32 = new Adler32();
         CheckedInputStream checkedInputStream = new CheckedInputStream(data, adler32);
         Checksum checksum = checkedInputStream.getChecksum();
@@ -38,6 +38,7 @@ public class CheckedInputStreamDemo {
 
         // 重置读取位置
         checkedInputStream.reset();
+        checksum.reset();
 
         System.out.println("重新读字节，预计读入7次，每次10个字节，总共62个字节");
         int i = available / 10;
@@ -57,10 +58,12 @@ public class CheckedInputStreamDemo {
         System.out.println(Arrays.toString(bytes));
         long value2 = checksum.getValue();
         System.out.println("第7次读取的冗余检测对照值：" + value2);
+        System.out.println("和第一次的全读取是否相同？：" + (value2 == value));
 
         checkedInputStream.close();
         data.close();
-        System.err.println("如结果所示，分开读取的结果和一次性读取的结果是不同的，证明每次读取的字节不同生成的校验值也不同！");
-        System.err.println("只有当双方都读入了相同的字节，生成的冗余码才会相同！！");
+        System.err.println("只要读入的内容相同，无论是采用分片的读取方式还是采用一下子读完的方式, 最终读出到的校验值都是相同的！");
+//        System.err.println("如结果所示，分开读取的结果和一次性读取的结果是不同的，证明每次读取的字节不同生成的校验值也不同！");
+//        System.err.println("只有当双方都读入了相同的字节，生成的冗余码才会相同！！");
     }
 }
