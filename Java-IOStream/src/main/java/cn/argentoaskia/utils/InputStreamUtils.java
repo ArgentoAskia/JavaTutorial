@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 /**
  * 输入流工具类.
@@ -216,6 +218,16 @@ public class InputStreamUtils {
         return (T) target;
     }
 
+    /**
+     * checkedOutputStream Write out Data and getCheckSum
+     * @param context
+     * @param fileToWrite
+     * @param checksum
+     * @return
+     */
+    public static long checkedOutputStream(byte[] context, File fileToWrite, Checksum checksum){
+        return checksum.getValue();
+    }
     public static void main(String[] args) throws IOException {
         InputStream resourceAsStream = InputStreamDemo.class.getResourceAsStream("/data.txt");
         byte[] bytes1 = new byte[resourceAsStream.available()];
