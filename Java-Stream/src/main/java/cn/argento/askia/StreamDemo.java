@@ -3,11 +3,11 @@ package cn.argento.askia;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class StreamDemo {
@@ -22,6 +22,11 @@ public class StreamDemo {
     private static Stream<InetAddress> inetAddressStream;
 
     private static Stream<Float> floatStream;
+
+    private static Stream<String> arrayListStream;
+    private static Stream<String> hashSetStream;
+
+    private static Stream<String> dupeekStream;
 
     // 创建流的API
     private static void howToCreateAStream(){
@@ -55,34 +60,138 @@ public class StreamDemo {
             }
         });
 
+        // jdk 9以后新增截至的iterate方法！
+//        fibonacciStream = Stream.iterate(1, new Predicate<Integer>() {
+//            @Override
+//            public boolean test(Integer integer) {
+//                return integer.compareTo(Integer.valueOf("100000000")) <= 0;
+//            }
+//        }, new UnaryOperator<Integer>() {
+//            private Integer iterator = 1;
+//
+//            @Override
+//            public Integer apply(Integer integer) {
+//                Integer result = iterator + integer;
+//                iterator = integer;
+//                return result;
+//            }
+//        });
+
+
         // 4. 可以使用Stream.generate()来创建一个不断迭代的无限流
         // 4.1 该流的特点是会一直迭代下去，需要传递一个用来生成流成员的Supplier(生产者)，同样因为是无限流，需要中间操作才能使用！
         // 4.2 最常用于生成恒定流、随机数流等
         randomLongStream = Stream.generate(new Supplier<Long>() {
-            private Random random = new Random();
+            private final Random random = new Random();
             @Override
             public Long get() {
-                long l = random.nextLong();
-                return l;
+                return random.nextLong();
             }
         });
 
         // 5.返回包含单或者多个元素的顺序流
         try {
             InetAddress localHost = Inet4Address.getLocalHost();
-            Stream<InetAddress> stringStream = Stream.of(localHost);
+            inetAddressStream = Stream.of(localHost);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         floatStream = Stream.of(4.5F, 5.6F, 6.7F);
+        // JDK 9以后可以使用ofNullable()创建单个成员的流，但是如果参数是null,则返回empty的流！
+        // Stream.ofNullable()
 
         // 6.JCF框架中各种集合类型的Stream()
+        ArrayList<String> stringArrayList = new ArrayList<>();
+        HashSet<String> stringHashSet = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            stringArrayList.add(UUID.randomUUID().toString() + "\n");
+            stringHashSet.add(UUID.randomUUID().toString() + "\n");
+        }
+        arrayListStream = stringArrayList.stream();
+        hashSetStream = stringHashSet.stream();
 
-
-
+        // 7.使用concat来合并两个流
+        Stream<String> stringStream = Stream.of("123", "123", "123");
+        Stream<String> stringStream2 = Stream.of("123", "123", "123");
+        dupeekStream = Stream.concat(stringStream, stringStream2);
     }
+
+    /**
+     * 中间操作演示
+     */
+    private static void howToUseDistinct(){
+        Stream.Builder<String> dupeekStreamCopyBuilder = Stream.builder();
+        dupeekStream = copy(dupeekStream, dupeekStreamCopyBuilder);
+        Stream<String> dupeekStreamCopy = dupeekStreamCopyBuilder.build();
+        System.out.print("原先的流内容：");
+        System.out.println(printStream(dupeekStreamCopy));
+        Stream<String> distinct = dupeekStream.distinct();
+        System.out.print("调用distinct()后：");
+        System.out.println(printStream(distinct));
+        dupeekStream.close();
+        dupeekStreamCopy.close();
+    }
+    private static void howToUseFilter(){
+        // 因为是无限流所以需要进行截断处理
+        Stream<Long> limitRandomLongStream = randomLongStream.limit(10);
+        Stream.Builder<Long> builder = Stream.builder();
+        limitRandomLongStream = copy(limitRandomLongStream, builder);
+        System.out.print("原先的流成员：");
+        System.out.println(printStream(limitRandomLongStream));
+        Stream<Long> longStream = builder.build().filter(new Predicate<Long>() {
+            final Random random = new Random();
+            @Override
+            public boolean test(Long aLong) {
+                if (aLong.compareTo(0L) > 0 && random.nextBoolean()){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        });
+        System.out.print("Filter()后的流成员：");
+        System.out.println(printStream(longStream));
+        randomLongStream.close();
+        limitRandomLongStream.close();
+        longStream.close();
+        randomLongStream = Stream.generate(new Supplier<Long>() {
+            private final Random random = new Random();
+            @Override
+            public Long get() {
+                return random.nextLong();
+            }
+        });
+    }
+
+
+
+    private static String printStream(Stream<?> stream){
+        StringJoiner stringJoiner = new StringJoiner(", ", "[", "]");
+        stream.forEach(n -> {
+            String s = n.toString();
+            stringJoiner.add(s);
+        });
+        return stringJoiner.toString();
+    }
+    @SafeVarargs
+    private static <T> Stream<T> copy(Stream<? extends T> origin, Stream.Builder<T>... copyBuilders){
+        Stream.Builder<T> originBuilder = Stream.builder();
+        Iterator<? extends T> iterator = origin.iterator();
+        while(iterator.hasNext()){
+            T next = iterator.next();
+            for (Stream.Builder<T> copyBuilder : copyBuilders) {
+                copyBuilder.accept(next);
+            }
+            originBuilder.accept(next);
+        }
+        return originBuilder.build();
+    }
+
     public static void main(String[] args) {
         howToCreateAStream();
+        // 中间操作
+        howToUseDistinct();
+        howToUseFilter();
 
         // 合并流
         // Stream.concat();
