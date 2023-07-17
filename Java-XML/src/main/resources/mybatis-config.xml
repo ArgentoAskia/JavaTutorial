@@ -1,9 +1,15 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/css" href="css文件名.css"?>
 <!-- 预处理 -->
 <!-- 文档声明 -->
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" [
+        <!ENTITY qh "清华大学出版社">
+        <!ENTITY jx "机械工业出版社">
+        <!NOTATION mp PUBLIC "movPlayer.exe">
+        <!NOTATION gif SYSTEM "Image/gif">
+        ]>
         <!--PublicId -->
         <!--SystemId -->
 <mapper namespace="cn.argentoaskia">
@@ -14,7 +20,7 @@
     <!-- EntityReference -->
     <sql id="select" databaseId="oracle">
         SELECT 3&amp;2, 2&lt;5,
-               3&gt;7</sql>
+               3&gt;&qh;7</sql>
     <!-- element + whitespace + Attr + Text + Comment-->
     <select id="selectAll" useCache="true" fetchSize="50">
         SELECT * FROM staff
