@@ -21,6 +21,19 @@ public class MybatisConfigXMLParseDemo {
 
     /**
      * 查询各类节点操作和解析XML
+     *
+     * - 一个Document对象就代表一个XML文件，DOM方式的解析会把XML文件解析成一个树（Tree）的结构
+     * - 一般情况下，一个复杂的XML至少包含下面的部分：
+     * 1.DocumentType（文档声明，如HTML中的<!DOCTYPE html>）
+     * 2.EntityReference（实体引用，如&amp;、&lt;等）、
+     * 3.Element（各类标签节点元素，如<select>、<sql>这些）、
+     * 4.Attributes（标签节点上的属性，如id、lang、databaseId等等）、
+     * 5.ProcessingInstruction（处理指令，以<? ?>开头和结尾，如：<?xml version="1.0" encoding="UTF-8" ?>）、
+     * 6.Comment（注释）、
+     * 7.Text（标签体内的内容）、
+     * 8.CDATA（不会被解析处理的原始数据）、
+     * 9.Entity（表示一个实体，对应<!ENTITY ...>）[一般XML很少写]
+     * 10.Notation（表示一个注释声明，如<！NOTATION ...>。）[一般XML很少写]
      */
     private static void parse(Document document){
         System.out.println("==================== 文档解析 ====================");
@@ -232,6 +245,13 @@ public class MybatisConfigXMLParseDemo {
         System.out.println("第二个SQL标签：属性id：" + id2 + ", 属性databaseId：" + databaseId + ", 标签体是否是空白字符：" + elementContentWhitespace2 +
                 ", 标签体内容（去掉回车符）：" + wholeText2.trim() + ", 标签体内容（原始）：" + wholeText2 + ", 节点类型：" + nodeType2 + ", 父节点名称：" + parentNodeName);
     }
+
+    /**
+     * 添加、删除、修改操作！
+     */
+    private static void build(Document newDocument, Document document){
+
+    }
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, TransformerConfigurationException {
         // 1. 读入XML文件到流，File对象或者URL等都ok
         InputStream mybatisConfigXml = MybatisConfigXMLParseDemo.class.getResourceAsStream("/mybatis-config.xml");
@@ -246,19 +266,10 @@ public class MybatisConfigXMLParseDemo {
         //   也可以使用newDocument()创建一个空的XML文档。
         Document mybatisConfigDocument = documentBuilder.parse(mybatisConfigXml);
 
+        // 5.通过documentBuilder.newDocument()创建一个空Document对象
+        Document newDocument = documentBuilder.newDocument();
 
-        // 5.一个Document对象就代表一个XML文件，DOM方式的解析会把XML文件解析成一个树（Tree）的结构
-        // 一般情况下，一个复杂的XML至少包含下面的部分：
-        // 1.DocumentType（文档声明，如HTML中的<!DOCTYPE html>）
-        // 2.EntityReference（实体引用，如&amp;、&lt;等）、
-        // 3.Element（各类标签节点元素，如<select>、<sql>这些）、
-        // 4.Attributes（标签节点上的属性，如id、lang、databaseId等等）、
-        // 5.ProcessingInstruction（处理指令，以<? ?>开头和结尾，如：<?xml version="1.0" encoding="UTF-8" ?>）、
-        // 6.Comment（注释）、
-        // 7.Text（标签体内的内容）、
-        // 8.CDATA（不会被解析处理的原始数据）、
-        // 9.Entity（表示一个实体，对应<!ENTITY ...>）[一般XML很少写]
-        // 10.Notation（表示一个注释声明，如<！NOTATION ...>。）[一般XML很少写]
+
 
         // toString()将会打印出NodeName和NodeValue
 
