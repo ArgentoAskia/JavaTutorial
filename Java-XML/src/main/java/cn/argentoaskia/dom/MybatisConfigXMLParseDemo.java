@@ -1,5 +1,10 @@
 package cn.argentoaskia.dom;
 
+import com.sun.org.apache.xerces.internal.dom.AttrImpl;
+import com.sun.org.apache.xerces.internal.dom.CoreDocumentImpl;
+import com.sun.org.apache.xerces.internal.dom.DocumentTypeImpl;
+import com.sun.org.apache.xerces.internal.dom.ElementImpl;
+import com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -7,15 +12,33 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLOutput;
+import java.util.Date;
 
 /**
  * 这个Demo演示了基于DOM的XML中各种类型节点的基本CRUD！
+ * 常用的JAXP库中的两个包：
+ * - javax.xml.parsers.*：一般用于Dom解析处理
+ * - javax.xml.transform.*：一般用于将Document写出到xml文件
+ * - javax.xml.validation.*：一般用于xml验证
+ * - javax.xml.xpath.*：xpath相关库
+ * 两套标准：
+ * - SAX：org.xml.sax
+ * - DOM：org.w3c.dom
+ * =================================
+ * 以下是我编写这个Demo的最大感想：
+ *  TNND为什么DOM这么反人类加难用啊！
+ *  不建议看！感觉很折腾人！！！
  */
 public class MybatisConfigXMLParseDemo {
 
@@ -244,15 +267,144 @@ public class MybatisConfigXMLParseDemo {
         String parentNodeName = ((Element) sql1.getParentNode()).getTagName();
         System.out.println("第二个SQL标签：属性id：" + id2 + ", 属性databaseId：" + databaseId + ", 标签体是否是空白字符：" + elementContentWhitespace2 +
                 ", 标签体内容（去掉回车符）：" + wholeText2.trim() + ", 标签体内容（原始）：" + wholeText2 + ", 节点类型：" + nodeType2 + ", 父节点名称：" + parentNodeName);
+        // 7.遍历整个文档的节点类型
+        NodeList childNodes1 = document.getChildNodes();
+        for (int i = 0; i < childNodes1.getLength(); i++) {
+            Node item = childNodes1.item(i);
+            System.out.println("第" + i + "个节点：" + item + ",类型是：" + item.getNodeType());
+        }
+
     }
 
     /**
-     * 添加、删除、修改操作！
+     * 1.添加、删除、修改操作！
+     * 2.写出XML到文件操作
+     *
+     * 增删改查操作主要靠Document对象来实现
+     * 如果需要定义Document的属性，如schema、等等，则需要使用DocumentBuilderFactory
      */
-    private static void build(Document newDocument, Document document){
+    private static void build(DocumentBuilderFactory documentBuilderFactory, Document document) throws ParserConfigurationException, TransformerException {
+        // 0.设置文档属性等等
+        // 指定此documentBuilderFactory拼接CDATA节点的时候，CDATA是否转为Text节点，默认false
+        documentBuilderFactory.setCoalescing(true);
+        // 指定此documentBuilderFactory生成的解析器将展开实体引用节点。默认情况下，该值被设置为true
+        documentBuilderFactory.setExpandEntityReferences(true);
+        // 指定此documentBuilderFactory生成的解析器将忽略注释。缺省情况下，该值被设置为false。
+        documentBuilderFactory.setIgnoringComments(false);
+        // 指定由此工厂创建的解析器在解析XML文档时必须消除元素内容中的空白(有时称为“可忽略的空白”)
+        documentBuilderFactory.setIgnoringElementContentWhitespace(true);
+        // 指定由该代码生成的解析器将提供对XML名称空间的支持。缺省情况下，该值被设置为false
+        // 开启该属性之后即可使用所谓的localname
+        documentBuilderFactory.setNamespaceAware(true);
+        // 设置XInclude处理的状态。
+        documentBuilderFactory.setXIncludeAware(false);
+        // 设置xml的Schema，用于做验证！
+        documentBuilderFactory.setSchema(null);
+        // 指定由该代码生成的解析器将在解析文档时验证文档。
+        documentBuilderFactory.setValidating(false);
 
+        // 创建documentBuilder
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        // 1.通过documentBuilder的newDocument()创建一个空文档！
+        Document newDocument = documentBuilder.newDocument();
+
+
+        // 2.可以使用setUserData()方法来存储临时数据
+        // 允许用户在底层实现上设置特定属性,一般用于数据过渡和文档对象共享！
+        newDocument.setUserData("fileName", "Data.xml", null);
+        newDocument.setUserData("documentURI", "Java-XML/src/main/resources/Data.xml", null);
+        newDocument.setUserData("createDate", new Date(), null);
+        newDocument.setUserData("updateDate", new Date(), null);
+        newDocument.setUserData("fileType", "xml", null);
+
+        // 设置xml版本、XmlStandalone、文档URI等
+        newDocument.setXmlVersion("1.0");
+        newDocument.setXmlStandalone(false);
+        newDocument.setDocumentURI((String) newDocument.getUserData("documentURI"));
+
+        // 3.可以使用Document类中的各种createXXX()方法来创建一个节点
+        // 比如：创建一个<?xml-namespace prefix="x" uri="http://www.example.com/x"?>处理指令
+        ProcessingInstruction processingInstruction =
+                newDocument.createProcessingInstruction("xml-namespace", "prefix=\"x\" uri=\"http://www.example.com/x\"");
+        // 比如：创建一个注释
+        Comment comment = newDocument.createComment(" 定义一个处理指令 ");
+        // 但是创建DocumentType节点目前只看到这种方法
+        DocumentType documentType = new DocumentTypeImpl((CoreDocumentImpl) newDocument,
+                "mapper", "-//mybatis.org//DTD Mapper 3.0//EN",
+                "http://mybatis.org/dtd/mybatis-3-mapper.dtd");
+        // 可以使用appendChild()来拼接子节点
+        newDocument.appendChild(processingInstruction);
+        newDocument.appendChild(comment);
+//        newDocument.appendChild(documentType);
+
+        // mapper1
+        // 拿到一些参考节点
+        Element mapper = (Element) document.getElementsByTagName("mapper").item(0);
+        // 可以使用下面这两个方法：importNode()、adoptNode()实现转移节点
+        // 区别：adoptNode():移动节点 | importNode()：复制节点
+        // 尝试将另一个文档中的节点采用到此文档中。如果支持，它会更改源节点及其子节点以及附加的属性节点(如果有)的ownerDocument。
+        // 如果源节点有父节点，则首先将其从其父节点的子列表中删除。这有效地允许将子树从一个文档移动到另一个文档(与importNode()不同，后者创建源节点的副本，而不是移动它)。
+        mapper = (Element) newDocument.importNode(mapper, true);
+        // 在实测中，无论是adoptNode()还是importNode()，调用方法之后都需要调用appendChild(node)才能拼接上
+
+        // mapper2
+        // 使用cloneNode()复制一个节点，true代表递归复制,注意，复制节点不会改变所属文档！
+        Element mapper2 = (Element)mapper.cloneNode(true);
+        Element mapper2_1 = (Element)mapper.cloneNode(true);
+        // 使用removeChild()：删除子节点
+        // 使用replaceChild()：替换节点
+        Node sql0 = mapper2.getChildNodes().item(3);
+        Node sql1 = mapper2.getChildNodes().item(7);
+        mapper2.removeChild(sql0);
+        mapper2.replaceChild(mapper2_1, sql1);
+        // 这里不能使用appendChild()，因为复制的节点不会改变所属文档！
+        Node node1 = newDocument.adoptNode(mapper2);
+        mapper.appendChild(node1);
+
+        // mapper3
+        Element mapper3 = newDocument.createElement("mapper3");
+        // 添加标签属性
+        // Element使用setAttribute()、setAttributeNode()添加节点
+        // Element使用removeAttribute()、removeAttributeNode()删除节点
+        mapper3.setAttribute("namespace", "cn.argentoaskia");
+        Attr url = newDocument.createAttribute("url");
+        url.setValue("www.argentoaskia.cn");
+        mapper3.setAttributeNode(url);
+        // 添加标签体Text节点
+        Text textNode = newDocument.createTextNode("INSERT INTO table VALUES(`123`, 11, 1122)");
+        mapper3.appendChild(textNode);
+        // 创建子标签
+        DocumentFragment documentFragment = newDocument.createDocumentFragment();
+        Element insert = newDocument.createElement("insert");
+        insert.setAttribute("id", "insertMore");
+        insert.setAttribute("databaseId", "mysql");
+        CDATASection cdataSection = newDocument.createCDATASection("123456789");
+        insert.appendChild(cdataSection);
+        Comment insert_sql = newDocument.createComment("insert sql");
+        documentFragment.appendChild(insert);
+        documentFragment.appendChild(insert_sql);
+        mapper3.appendChild(documentFragment);
+        mapper.appendChild(mapper3);
+
+        newDocument.appendChild(mapper);
+
+        String documentURI = (String) newDocument.getUserData("documentURI");
+        // 保存到文件，JAXP的保存比较鸡肋，并且不会处理格式！
+        // 1.首先要创建转换对象！
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        // 2.设置各种参数
+        // 参考：OutputKeys类为键
+        // 节点转换
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        // 编码
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        // 进行转换输出
+        DOMSource domSource = new DOMSource(newDocument);
+        StreamResult streamResult = new StreamResult(documentURI);
+        transformer.transform(domSource, streamResult);
     }
-    public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, TransformerConfigurationException {
+    public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException, TransformerException {
         // 1. 读入XML文件到流，File对象或者URL等都ok
         InputStream mybatisConfigXml = MybatisConfigXMLParseDemo.class.getResourceAsStream("/mybatis-config.xml");
 
@@ -265,15 +417,19 @@ public class MybatisConfigXMLParseDemo {
         // 4.通过documentBuilder.parse()来解析XML输入流、XML File对象或者XML文件URL等
         //   也可以使用newDocument()创建一个空的XML文档。
         Document mybatisConfigDocument = documentBuilder.parse(mybatisConfigXml);
-
-        // 5.通过documentBuilder.newDocument()创建一个空Document对象
-        Document newDocument = documentBuilder.newDocument();
-
-
-
         // toString()将会打印出NodeName和NodeValue
-
         parse(mybatisConfigDocument);
+
+
+        // 5.Document的增删改查操作等等
+        build(documentBuilderFactory, mybatisConfigDocument);
+
+        // 5.创建一个新的XML保存文档！
+//        File outputXmlFile = new File("Java-XML/src/main/resources/Data.xml");
+//        if (!outputXmlFile.exists()){
+//            outputXmlFile.createNewFile();
+//        }
+//        FileInputStream fileInputStream = new FileInputStream(outputXmlFile);
 
 
 
@@ -340,8 +496,6 @@ public class MybatisConfigXMLParseDemo {
 //        System.out.println(length);
 
         /*
-
-
 
 
         // 获取所有标签体内的内容

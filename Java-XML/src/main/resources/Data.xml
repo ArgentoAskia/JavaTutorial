@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-namespace prefix="x" uri="http://www.example.com/x"?>
+<!-- 定义一个处理指令 -->
+<mapper namespace="cn.argentoaskia">
+
+    <!-- CDATA Part -->
+    <sql id="insert" lang="EN">
+        <![CDATA[SELECT 3&2, 2<5, 3>7]]>
+    </sql>
+    <!-- EntityReference -->
+    <sql databaseId="oracle" id="select">
+        SELECT 3&amp;2, 2&lt;5,
+        3&gt;清华大学出版社7
+    </sql>
+    <!-- element + whitespace + Attr + Text + Comment-->
+    <select fetchSize="50" id="selectAll" useCache="true">
+        SELECT * FROM staff
+    </select>
+    <mapper namespace="cn.argentoaskia">
+        <!-- CDATA Part -->
+
+        <!-- EntityReference -->
+        <mapper namespace="cn.argentoaskia">
+            <!-- CDATA Part -->
+            <sql id="insert" lang="EN">
+                <![CDATA[SELECT 3&2, 2<5, 3>7]]>
+            </sql>
+            <!-- EntityReference -->
+            <sql databaseId="oracle" id="select">
+                SELECT 3&amp;2, 2&lt;5,
+                3&gt;清华大学出版社7
+            </sql>
+            <!-- element + whitespace + Attr + Text + Comment-->
+            <select fetchSize="50" id="selectAll" useCache="true">
+                SELECT * FROM staff
+            </select>
+        </mapper>
+        <!-- element + whitespace + Attr + Text + Comment-->
+        <select fetchSize="50" id="selectAll" useCache="true">
+            SELECT * FROM staff
+        </select>
+    </mapper>
+    <mapper3 namespace="cn.argentoaskia" url="www.argentoaskia.cn">INSERT INTO table VALUES(`123`, 11, 1122)
+        <insert databaseId="mysql" id="insertMore"><![CDATA[123456789]]></insert>
+        <!--insert sql-->
+    </mapper3>
+</mapper>
