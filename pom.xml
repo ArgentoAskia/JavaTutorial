@@ -21,6 +21,24 @@
         <module>Java-File</module>
         <module>Java-Stream</module>
         <module>Java-Time</module>
+        <module>Java-Network</module>
+        <module>Java-National</module>
+        <module>Java-Compiler</module>
+        <module>Java-Annotation</module>
+        <module>Java-Safety</module>
+        <module>Java-JNI</module>
+        <module>Java-Modular</module>
+        <module>Java-Json</module>
+        <module>Java-Test</module>
+        <module>Java-Images</module>
+        <module>Java-Documents</module>
+        <module>Java-Thread</module>
+        <module>Java-Expressions</module>
+        <module>Java-Bytecode</module>
+        <module>Java-ClassLoader</module>
+        <module>Java-JVM</module>
+        <module>Java-YML</module>
+        <module>Java-Media</module>
     </modules>
     <properties>
         <java.version>8</java.version>
