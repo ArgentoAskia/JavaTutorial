@@ -119,7 +119,10 @@ public class NTPClock extends Clock implements Serializable {
     public static final String TIME_SERVER_TENCENT = "ntp.tencent.com";
     public static final String TIME_SERVER_TENCENT_2 = "ntp2.tencent.com";
 
+    // port 13
     public static final String TIME_SERVER_NIST = "time.nist.gov";
+    public static final String TIME_SERVER_NIST_A = "time-a.nist.gov";
+
     public static final String TIME_SERVER_CN_POOL_NTP = "cn.pool.ntp.org";
     public static final String TIME_SERVER_UBUNTU = "ntp.ubuntu.com";
     public static final String TIME_SERVER_POOL_NTP = "pool.ntp.org";

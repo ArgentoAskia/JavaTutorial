@@ -1,4 +1,5 @@
-package cn.argento.askia.times; /**
+package cn.argento.askia.times;
+/**
  * @version 1.0 2016-05-10
  * @author Cay Horstmann
  */
