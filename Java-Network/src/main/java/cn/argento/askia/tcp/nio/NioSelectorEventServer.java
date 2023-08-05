@@ -10,6 +10,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * 以下演示基于Selector的Selected-Key控制的读写的服务器端
+ */
 public class NioSelectorEventServer {
 
     public static void main(String[] args) throws IOException {

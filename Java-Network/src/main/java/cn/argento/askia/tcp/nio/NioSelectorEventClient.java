@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * 以下演示基于Selector的Selected-Key控制的读写的客户端
+ */
 public class NioSelectorEventClient {
 
 	public static void main(String[] args) {

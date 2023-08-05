@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * 多路复用服务端
+ */
 public class NIOSelectorServer {
     public static void main(String[] args) throws Exception{
         ServerSocketChannel serverSocketChannel1 = ServerSocketChannel.open();

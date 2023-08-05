@@ -9,6 +9,9 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+/**
+ * 多路复用客户端
+ */
 public class NIOEchoClient {
     public static void main(String[] args) {
         //客户端轮询连接服务器，连接成功，结束轮询
