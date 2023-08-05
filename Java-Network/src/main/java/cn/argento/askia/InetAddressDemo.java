@@ -2,11 +2,13 @@ package cn.argento.askia;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
 /**
- * 该类将Host和IP地址封装再一块形成InetAddress
+ * 该类将Host和IP地址封装再一块形成InetAddress,InetAddress的host输入是可以经过确实的，
+ * 也就是说如果输入的是域名，他会自动解析出对应的IP
  */
 public class InetAddressDemo {
     public static void main(String[] args) throws IOException {
@@ -41,6 +43,7 @@ public class InetAddressDemo {
         System.out.println(canonicalHostName);
         System.out.println(hostName);
         System.out.println(hostAddress);
+        System.out.println();
 
 
         // 3.判别方法
