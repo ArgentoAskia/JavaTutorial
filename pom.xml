@@ -46,6 +46,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
+    <!-- add Management -->
     <dependencyManagement>
         <dependencies>
             <dependency>
