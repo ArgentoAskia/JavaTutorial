@@ -1,4 +1,4 @@
-package cn.argentoaskia;
+package cn.argentoaskia.nio;
 
 import java.io.File;
 import java.net.URI;

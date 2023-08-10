@@ -1,4 +1,4 @@
-package cn.argentoaskia;
+package cn.argentoaskia.io;
 
 import java.io.File;
 import java.io.IOException;
