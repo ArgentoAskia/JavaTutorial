@@ -83,7 +83,17 @@ public class FileDemo {
         File newDir = new File(resourcesFolderFile, "newDir/");
         File newDirs = new File(resourcesFolderFile, "Argento/Askia/Dirs");
         File newFileInNewDir = new File(resourcesFolderFile, "/newDir/newDirFile.txt");
-
+        File renameFile = new File(resourcesFolderFile, "rename.txt");
+        File renameFile2 = new File(resourcesFolderFile, "rename2.txt");
+        if (renameFile.exists()){
+            System.out.println("先删除renameFile.txt(防止重命名失败！):" + renameFile.delete());
+        }
+        if (renameFile2.exists()){
+            System.out.println("删除重命名失败的renameFile2.txt:" + renameFile2.delete());
+        }
+        System.out.println("创建重命名文件renameFile2.txt：" + (renameFile2.createNewFile()? "成功" : "失败"));
+        boolean b = renameFile2.renameTo(renameFile);
+        System.out.println("重命名renameFile2.txt --> renameFile.txt：" + (b? "成功" : "失败"));
         if (newFile.exists()){
             // 文件存在，先删除再重新创建
             System.out.println("文件：" + newFile.getPath() + "已存在，即将进行删除操作：" + (newFile.delete()? "删除成功":"删除失败"));
@@ -120,6 +130,11 @@ public class FileDemo {
         System.out.println("绝对路径(会加上根目录, 保留..和.)：" + absolutePath);
         System.out.println("相对路径(保留..和.)：" + path);
         System.out.println();
+        System.out.println("特别注意如果File对象本身就代表一个绝对路径，则getPath()和getAbsolutePath()结果相同");
+        File pathFileTest = new File("D:\\OpenSourceProject\\JavaProject\\Java-File\\src\\main\\resources\\FlyBird3.jar");
+        System.out.println(pathFileTest.getPath());
+        System.out.println(pathFileTest.getAbsolutePath());
+        System.out.println();
 
 
         System.out.println("=================================================");
@@ -133,11 +148,13 @@ public class FileDemo {
         //        file.getFreeSpace();
         //        file.getTotalSpace();
         //        file.getUsableSpace();
-        String dirName = moduleFile.getName();
+        System.out.println(resourcesFolderFile);
+        System.out.println(readableFile);
+        String dirName = resourcesFolderFile.getName();
         String fileName = readableFile.getName();
         System.out.println("dirName：" +  dirName);
         System.out.println("fileName：" + fileName);
-        String dirParent = moduleFile.getParent();
+        String dirParent = resourcesFolderFile.getParent();
         String fileParent = readableFile.getParent();
         System.out.println("dirParent：" +  dirParent);
         System.out.println("fileParent：" + fileParent);
@@ -149,7 +166,7 @@ public class FileDemo {
         long l = jarFile.lastModified();
         System.out.println(jarFile.getCanonicalPath() + " last modify time：" + l);
         long length = jarFile.length();
-        System.out.println(jarFile.getCanonicalPath() + " ‘s length：" + length);
+        System.out.println(jarFile.getCanonicalPath() + " ‘s length：" + length + "个字节");
         System.out.println();
 
         System.out.println("=================================================");
