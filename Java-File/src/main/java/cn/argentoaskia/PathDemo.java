@@ -2,10 +2,7 @@ package cn.argentoaskia;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.Iterator;
 
 public class PathDemo {
