@@ -10,6 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>Java-JDBC</module>
+        <module>Java-Assertions</module>
         <module>Java-UsfulClass</module>
         <module>Java-JCF</module>
         <module>Java-Exception</module>
