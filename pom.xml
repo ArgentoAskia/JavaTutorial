@@ -9,38 +9,40 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>Java-JDBC</module>
-        <module>Java-Beans</module>
-        <module>Java-Assertions</module>
-        <module>Java-UsfulClass</module>
-        <module>Java-JCF</module>
-        <module>Java-Exception</module>
-        <module>Java-Reflect</module>
-        <module>Java-GUI-AWT</module>
-        <module>Java-IOStream</module>
-        <module>Java-DesignPatterns</module>
-        <module>Java-XML</module>
-        <module>Java-File</module>
-        <module>Java-Stream</module>
-        <module>Java-Time</module>
-        <module>Java-Network</module>
-        <module>Java-National</module>
-        <module>Java-Compiler</module>
         <module>Java-Annotation</module>
-        <module>Java-Safety</module>
-        <module>Java-JNI</module>
-        <module>Java-Modular</module>
-        <module>Java-Json</module>
-        <module>Java-Test</module>
-        <module>Java-Images</module>
-        <module>Java-Documents</module>
-        <module>Java-Thread</module>
-        <module>Java-Expressions</module>
+        <module>Java-Assertions</module>
+        <module>Java-Beans</module>
+        <module>Java-Buffer</module>
         <module>Java-Bytecode</module>
         <module>Java-ClassLoader</module>
+        <module>Java-Compiler</module>
+        <module>Java-DesignPatterns</module>
+        <module>Java-Documents</module>
+        <module>Java-Exception</module>
+        <module>Java-Expressions</module>
+        <module>Java-File</module>
+        <module>Java-GUI-AWT</module>
+        <module>Java-Images</module>
+        <module>Java-IOStream</module>
+        <module>Java-JCF</module>
+        <module>Java-JDBC</module>
+        <module>Java-JNI</module>
+        <module>Java-Json</module>
         <module>Java-JVM</module>
-        <module>Java-YML</module>
         <module>Java-Media</module>
+        <module>Java-Modular</module>
+        <module>Java-National</module>
+        <module>Java-Network</module>
+        <module>Java-Reflect</module>
+        <module>Java-Safety</module>
+        <module>Java-Stream</module>
+        <module>Java-Test</module>
+        <module>Java-Thread</module>
+        <module>Java-Time</module>
+        <module>Java-UsfulClass</module>
+        <module>Java-XML</module>
+        <module>Java-YML</module>
+
     </modules>
     <properties>
         <java.version>8</java.version>
