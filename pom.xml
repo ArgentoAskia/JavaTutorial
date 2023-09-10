@@ -42,6 +42,7 @@
         <module>Java-UsfulClass</module>
         <module>Java-XML</module>
         <module>Java-YML</module>
+        <module>Java-LanguageModel</module>
 
     </modules>
     <properties>
