@@ -830,18 +830,152 @@ public class MyClass<@MyAnnotation T> {
 
 - `AbstractProcess`抽象类：抽象注解处理器，对顶层接口中的部分方法提供了实现，需要自定义处理器时继承该抽象类即可！
 - `@SupportedAnnotationTypes`：待处理的注解的全限定类名
-- `@SupportedOptions`：
+- `@SupportedOptions`：用于指定`javac`编译代码的编译参数
 - `@SupportedSourceVersion`：待处理的注解的源代码版本
 - `ProcessingEnvironment`接口：处理环境上下文
 - `RoundEnvironment`接口：代表注解轮询处理环境接口
 - `Messager`接口：代表处理过程中产生的警告信息！
-- `Filer`接口
+- `Filer`接口：
 
 定义一个注解处理器只需要继承`AbstractProcess`抽象类实现`process()`方法即可，并且使用`@SupportedAnnotationTypes`和`@SupportedAnnotationTypes`指定需要处理的注解：
 
+```java
+@SupportedAnnotationTypes("cn.argento.askia.processors.source.ToString")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class ToStringAnnotationProcessor extends AbstractProcessor {
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        return false;
+    }
+}
+```
 
+```java
+import static java.lang.annotation.RetentionPolicy.*;
+import static java.lang.annotation.ElementType.*;
 
+@Target({TYPE})
+@Retention(SOURCE)
+public @interface ToString {
+    String delimiter() default ", ";
+    boolean ignoreFieldName() default false;
+    boolean appendHashCode() default false;
+}
+```
 
+可以使用`@SupportedOptions()`指定编译参数，如：
+
+```java
+@SupportedAnnotationTypes("cn.argento.askia.processors.source.ToString")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedOptions("-parameters")
+public class ToStringAnnotationProcessor extends AbstractProcessor {
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        return false;
+    }
+}
+```
+
+源码级注解处理器理论上只能生成新的源代码文件，而无法修改现有的源代码，想要实现修改现有源代码，可以通过修改字节码实现，但源码级注解处理器却可以干预`javac`对源代码的分析，从而干预字节码的最终生成。
+
+`javac`对源代码进行分析时，会生成一棵抽象语法树（`AST`），最终编译出来的字节码也是以这颗`AST`为原型进行编译的，类似于`DOM`的`XML`。这颗`AST`中的各个节点会被解析，然后传递给`process`方法的`roundEnv`和`annotations`参数。可以通过直接修改`AST`的节点的形式来改变最终的字节码的生成，举例就是为源文件添加`Getter`、`Setter`方法！
+
+特别注意这种修改`AST`的方式并没有修改源文件，只是对源文件做了增强，类似于`AOP`！
+
+##### 语言级别API
+
+编译器中有专门的语言模型`API`来对`AST`节点进行抽象封装，这类`API`位于`javax.lang.model.*`包中，其中的子包：
+
+- `element`：代表各种`AST`的节点
+- `type`：代表各类解析的节点类型
+- `util`：工具包，包含各种处理节点的工具、`JDK 7、8、9`版本的工具支持
+
+`javax.lang.model.*`包下的`AnnotatedConstruct`接口代表一个被注解的结构，方法设计和反射注解的`API`一样。
+
+```java
+public interface AnnotatedConstruct {
+    // 返回当前结构直接持有的所有注解
+    List<? extends AnnotationMirror> getAnnotationMirrors();
+    // 根据注解类型返回注解
+    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+    /**
+     * 功能同上，该方法可以额外检测可重复的注解(java8 新特性)
+     */
+    <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType);
+}
+
+```
+
+其中`AnnotationMirror`接口代表一个完整的注解，语言模型`API`使用基于镜像的设计方式，具体来说就是该模型使静态语言构造（比如表示`java.util.Set`的元素）与某一元素所关联的类型系列（比如原始类型的 `java.util.Set`、`java.util.Set<String>`和`java.util.Set<T>`）之间有所区别。
+
+`SourceVersion`则是一个枚举类，代表当前`JDK`版本及历代各个版本，以及相关特性：
+
+```java
+public enum SourceVersion {
+    /*
+     * Summary of language evolution
+     * 1.1: nested classes
+     * 1.2: strictfp
+     * 1.3: no changes
+     * 1.4: assert
+     * 1.5: annotations, generics, autoboxing, var-args...
+     * 1.6: no changes
+     * 1.7: diamond syntax, try-with-resources, etc.
+     * 1.8: lambda expressions and default methods
+     */
+    // 最初版本 
+    RELEASE_0,
+    // 1.1
+    RELEASE_1,
+    // 1.2，由此类推
+    RELEASE_2,
+    RELEASE_3,
+    RELEASE_4,
+    RELEASE_5,
+    RELEASE_6,
+    RELEASE_7,
+    RELEASE_8;
+    // 返回当前的JDK版本
+    public static SourceVersion latest() {}
+    // 返回当前支持的语言级别，和环境变量java.specification.version有关
+    public static SourceVersion latestSupported() {}
+    // 判断名称是否是一个标识符
+    public static boolean isIdentifier(CharSequence name) {}
+    // 用于判断名称(变量名、方法名等)是否是一个非标识符名称，如变量名不能是public等
+    public static boolean isName(CharSequence name) {}
+    // 判断名称是否是一个关键字
+    public static boolean isKeyword(CharSequence s) {}
+}
+```
+
+`UnknownEntityException`会在语言解析建树的时候如果遇到无法解析的实体就会抛出该异常！比如为`JDK 7`建模时碰到了`JDK 11`的特性。
+
+###### element子包
+
+在`element`包中，包含着程序中的各种元素，一个典型的`java`代码包括模块、包、类/接口、方法、构造函数、变量等。这些构成程序的每一个部分，都可以被称为程序的一个元素。
+
+该包的内容主要是接口、枚举类和异常：
+
+> 注解：
+
+```java
+AnnotationMirror
+AnnotationValue
+AnnotationValueVisitor<R, P>
+```
+
+> 节点：
+
+```
+// 顶级Eleme
+Element
+ElementVisitor<R, P>
+
+// 枚举类
+ElementKind
+
+```
 
 
 
@@ -1486,3 +1620,11 @@ public class  User {
    }
 ```
 
+## 引用文章参考
+
+- `《core java 11》`
+- `document JDK 8`
+- 华东师范大学慕课`Java`核心技术
+- `CSDN`文章
+  - 语言级别`API`：https://www.cnblogs.com/wellcherish/p/17147811.html
+  - 源码级别注解处理器：https://blog.csdn.net/zjcsuct/article/details/125285983
