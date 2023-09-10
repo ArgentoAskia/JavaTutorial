@@ -832,7 +832,7 @@ public class MyClass<@MyAnnotation T> {
 - `@SupportedAnnotationTypes`：待处理的注解的全限定类名
 - `@SupportedOptions`：用于指定`javac`编译代码的编译参数
 - `@SupportedSourceVersion`：待处理的注解的源代码版本
-- `ProcessingEnvironment`接口：处理环境上下文
+- `ProcessingEnvironment`接口：代表处理注解环境
 - `RoundEnvironment`接口：代表注解轮询处理环境接口
 - `Messager`接口：代表处理过程中产生的警告信息！
 - `Filer`接口：
@@ -877,105 +877,56 @@ public class ToStringAnnotationProcessor extends AbstractProcessor {
 }
 ```
 
-源码级注解处理器理论上只能生成新的源代码文件，而无法修改现有的源代码，想要实现修改现有源代码，可以通过修改字节码实现，但源码级注解处理器却可以干预`javac`对源代码的分析，从而干预字节码的最终生成。
+源码级注解处理器理论上只能生成新的源代码文件，而无法修改现有的源代码，想要实现修改现有源代码，可以通过修改字节码实现，但源码级注解处理器却可以干预`javac`对源代码的分析，从而干预字节码的最终生成。`javac`对源代码进行分析时，会生成一棵抽象语法树（`AST`），最终编译出来的字节码也是以这颗`AST`为原型进行编译的，类似于`DOM`的`XML`。可以通过直接修改`AST`的节点的形式来改变最终的字节码的生成，举例就是`Lombok`中的@Data注解为实体类添加`Getter`、`Setter`方法！特别注意这种修改`AST`的方式并没有修改源文件，只是对源文件做了增强，类似于`AOP`！
 
-`javac`对源代码进行分析时，会生成一棵抽象语法树（`AST`），最终编译出来的字节码也是以这颗`AST`为原型进行编译的，类似于`DOM`的`XML`。这颗`AST`中的各个节点会被解析，然后传递给`process`方法的`roundEnv`和`annotations`参数。可以通过直接修改`AST`的节点的形式来改变最终的字节码的生成，举例就是为源文件添加`Getter`、`Setter`方法！
-
-特别注意这种修改`AST`的方式并没有修改源文件，只是对源文件做了增强，类似于`AOP`！
-
-##### 语言级别API
-
-编译器中有专门的语言模型`API`来对`AST`节点进行抽象封装，这类`API`位于`javax.lang.model.*`包中，其中的子包：
-
-- `element`：代表各种`AST`的节点
-- `type`：代表各类解析的节点类型
-- `util`：工具包，包含各种处理节点的工具、`JDK 7、8、9`版本的工具支持
-
-`javax.lang.model.*`包下的`AnnotatedConstruct`接口代表一个被注解的结构，方法设计和反射注解的`API`一样。
+但想要修改`AST`并非易事，修改`AST`的相关`API`并没有标准化（在`tools.jar`中），我们仍然先介绍如何使用注解处理器来生成新的代码源文件，在注解处理器中，核心就是`process()`方法的参数，以及`AbstractProcessor`类中的`processingEnv`变量：
 
 ```java
-public interface AnnotatedConstruct {
-    // 返回当前结构直接持有的所有注解
-    List<? extends AnnotationMirror> getAnnotationMirrors();
-    // 根据注解类型返回注解
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
-    /**
-     * 功能同上，该方法可以额外检测可重复的注解(java8 新特性)
-     */
-    <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType);
-}
+Set<? extends TypeElement> annotations：
+代表要处理的注解，其值是@SupportedAnnotationTypes()的value值
 
+RoundEnvironment currentRoundEnv：
+代表轮询环境。process()会被轮询调用，因为源代码上可能拥有多个注解，需要多个注解处理器进行处理，所以会多次调用process()运行每一个注解处理器。
+在每一轮中，process()都会被调用一次，调用时会传递改轮中所有文件中发现的所有注解构成的Set集合，以及当前的处理轮询的信息的RoundEnvironment引用。   
 ```
 
-其中`AnnotationMirror`接口代表一个完整的注解，语言模型`API`使用基于镜像的设计方式，具体来说就是该模型使静态语言构造（比如表示`java.util.Set`的元素）与某一元素所关联的类型系列（比如原始类型的 `java.util.Set`、`java.util.Set<String>`和`java.util.Set<T>`）之间有所区别。
-
-`SourceVersion`则是一个枚举类，代表当前`JDK`版本及历代各个版本，以及相关特性：
+关于`RoundEnvironment`，它主要有三个方法：
 
 ```java
-public enum SourceVersion {
-    /*
-     * Summary of language evolution
-     * 1.1: nested classes
-     * 1.2: strictfp
-     * 1.3: no changes
-     * 1.4: assert
-     * 1.5: annotations, generics, autoboxing, var-args...
-     * 1.6: no changes
-     * 1.7: diamond syntax, try-with-resources, etc.
-     * 1.8: lambda expressions and default methods
-     */
-    // 最初版本 
-    RELEASE_0,
-    // 1.1
-    RELEASE_1,
-    // 1.2，由此类推
-    RELEASE_2,
-    RELEASE_3,
-    RELEASE_4,
-    RELEASE_5,
-    RELEASE_6,
-    RELEASE_7,
-    RELEASE_8;
-    // 返回当前的JDK版本
-    public static SourceVersion latest() {}
-    // 返回当前支持的语言级别，和环境变量java.specification.version有关
-    public static SourceVersion latestSupported() {}
-    // 判断名称是否是一个标识符
-    public static boolean isIdentifier(CharSequence name) {}
-    // 用于判断名称(变量名、方法名等)是否是一个非标识符名称，如变量名不能是public等
-    public static boolean isName(CharSequence name) {}
-    // 判断名称是否是一个关键字
-    public static boolean isKeyword(CharSequence s) {}
-}
+Set<? extends Element> getRootElements();	// 返回当前注解处理器输入的文件
+Set<? extends Element> getElementsAnnotatedWith(TypeElement a);	// 获取标记了a注解的所有类、字段、方法等元素
+Set<? extends Element> getElementsAnnotatedWith(Class<? extends Annotation> a);
+// 同上
+boolean errorRaised();
+// 判断是否出现错误！
+boolean processingOver();
+// 判断是否处理结束
 ```
 
-`UnknownEntityException`会在语言解析建树的时候如果遇到无法解析的实体就会抛出该异常！比如为`JDK 7`建模时碰到了`JDK 11`的特性。
-
-###### element子包
-
-在`element`包中，包含着程序中的各种元素，一个典型的`java`代码包括模块、包、类/接口、方法、构造函数、变量等。这些构成程序的每一个部分，都可以被称为程序的一个元素。
-
-该包的内容主要是接口、枚举类和异常：
-
-> 注解：
+`ProcessingEnvironment`参数主要用于处理语言模型`API`，关于语言模型，请参考`LanguageModel`模块。其中的方法：
 
 ```java
-AnnotationMirror
-AnnotationValue
-AnnotationValueVisitor<R, P>
+// 获取传递给注解处理器的参数
+Map<String,String> getOptions();
+// 返回用于报告错误、警告和其他通知的Message对象。
+Messager getMessager();
+// 返回用于创建源文件、类和辅助文件（xml、properties等）的Filer对象
+Filer getFiler();
+// 返回对Elements对象用于对一个类的元素（类名、包、是否被废弃等，具体见语言模型API的Element接口）
+Elements getElementUtils();
+// 返回Types对象用于对一个元素的类型进行操作
+Types getTypeUtils();
+// 获取源代码版本
+SourceVersion getSourceVersion();
+// 获取locale
+Locale getLocale();
 ```
 
-> 节点：
+如果希望创建一个源文件，则可以使用`getFiler()`方法，获取`Filer`对象之后调用`createSourceFile()`获取一个`JavaFileObject`对象，该对象代表一个`Java`源文件，在编译器`API`一节中经常用到。
 
-```
-// 顶级Eleme
-Element
-ElementVisitor<R, P>
+> 进行代码编写
 
-// 枚举类
-ElementKind
-
-```
+代码编写完之后就是编译的问题，那么如何编译注解处理器并使用注解处理器编译其他代码？
 
 
 
