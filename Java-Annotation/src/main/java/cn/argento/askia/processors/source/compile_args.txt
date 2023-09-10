@@ -1,0 +1,1 @@
+javac -cp D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java -processor cn.argento.askia.processors.source.ToStringAnnotationProcessor User.java -XprintRounds
