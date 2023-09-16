@@ -1,4 +1,4 @@
-## Java-Annotation(80%)
+## Java-Annotation(93%)
 
 `Java`中注解可以说是`Java`编程的一大特性，本章节主要内容：
 
@@ -907,6 +907,7 @@ boolean processingOver();
 
 ```java
 // 获取传递给注解处理器的参数
+// 也就是注解@SupportedOptions的值！
 Map<String,String> getOptions();
 // 返回用于报告错误、警告和其他通知的Message对象。
 Messager getMessager();
@@ -914,7 +915,7 @@ Messager getMessager();
 Filer getFiler();
 // 返回对Elements对象用于对一个类的元素（类名、包、是否被废弃等，具体见语言模型API的Element接口）
 Elements getElementUtils();
-// 返回Types对象用于对一个元素的类型进行操作
+// 返回Types对象用于对一个元素的类型进行解析
 Types getTypeUtils();
 // 获取源代码版本
 SourceVersion getSourceVersion();
@@ -924,9 +925,70 @@ Locale getLocale();
 
 如果希望创建一个源文件，则可以使用`getFiler()`方法，获取`Filer`对象之后调用`createSourceFile()`获取一个`JavaFileObject`对象，该对象代表一个`Java`源文件，在编译器`API`一节中经常用到。
 
-> 进行代码编写
+> 那么如何编写一个注解处理器？可以按照下面的步骤：
+>
+> 1. 调用`RoundEnvironment`的`Set<? extends Element> getElementsAnnotatedWith(TypeElement a);`，传递`Set<? extends TypeElement> annotations：`参数来获取所有标记了该注解的`Element`对象
+> 2. 对标记了注解的元素进行处理，处理过程需要了解语言模型`API`
+>
+> 参考：Java-Annotation/src/main/java/cn/argento/askia/processors/source/ToStringAnnotationProcessor.java
 
 代码编写完之后就是编译的问题，那么如何编译注解处理器并使用注解处理器编译其他代码？
+
+要想使用`Processor`处理源代码，你可以使用下面三种方式：
+
+1. 直接使用编译参数指定，格式：
+
+   ```java
+   javac.exe -processor [注解处理器全限定类名1, 注解处理器全限定类名2, ...] [源代码1.java, 源代码2.java, ...]
+       
+   // 如果希望能够看到轮询轮次，可以加上-XprintRounds参数：
+   javac.exe -processor [注解处理器全限定类名1, 注解处理器全限定类名2, ...] [源代码1.java, 源代码2.java, ...] -XprintRounds
+   // 他会打印出如下的轮询信息（这信息可能使用中文的形式来输出）：
+   // Round 1:
+   //   input files: {源代码1}
+   //   annotations: [标记在源代码1上的SOURCE注解]
+   //   last round : false
+   // Round 2:
+   //   input files: {生成的源代码}
+   //   annotations: []
+   //   last round : false 
+   // Round 3:
+   //   input files: {}
+   //   annotations: []
+   //   last round : true 
+   ```
+
+2. 通过服务注册指定，在项目根路径下创建：`META-INF/services/javax.annotation.processing.Processor`文件，添加上自己的注解处理器的全限定类名，多个注解处理器换行分割！
+
+   ```java
+   cn.argento.askia.processors.source.EnumInnerConstantProcessor
+   cn.argento.askia.processors.source.ToStringAnnotationProcessor
+   ```
+
+3. 通过`Maven`的编译插件的配置指定如下：
+
+   ```xml
+   <plugin>
+                  
+   	<artifactId>maven-compiler-plugin</artifactId>
+   	<version>3.5.1</version>
+   	<configuration>
+           <source>1.8</source>
+           <target>1.8</target>
+           <encoding>UTF-8</encoding>
+           <annotationProcessors>
+               <annotationProcessor>
+                   cn.argento.askia.processors.source.EnumInnerConstantProcessor
+               </annotationProcessor>
+               <annotationProcessor>
+                   cn.argento.askia.processors.source.EnumInnerConstantProcessor
+               </annotationProcessor>
+           </annotationProcessors>
+   	</configuration>
+   </plugin>
+   ```
+
+使用这三种方式的大前提是，注解处理器已经编译完成。因此您需要先对注解处理器进行编译再去编译带注解的源代码，或者是把注解处理器放到一个独立的`Jar`包引入。
 
 
 
@@ -1314,11 +1376,13 @@ class sun.reflect.annotation.AnnotationInvocationHandler
 - 用于创建实体的`Builder`类的`@Builder`、`@Singular`
 
 - 用于`IO`流自动关闭的`@Cleanup`
-- 用于自定义日志的`@CustomLog`
+- 用于自定义日志的`@CustomLog`（该注解我们连同扩展包一起讲！）
 - 用于判空的`@NonNull`
 - 用于异常的`@SneakyThrows`
 - 用于锁的`@Synchronized`
 - 匿名局部变量特性：`val`、`var`
+
+###### val&&var
 
 首先`lombok`中支持你在局部变量里面使用`val`和`var`来代替具体的类型，`val`会生成`final`的局部变量
 
@@ -1330,6 +1394,8 @@ public void test(){
     // lombok会生成 final User b = new User();
 }
 ```
+
+###### @Data及相关的注解
 
 对于实体类，使用`@Data`注解将会为：
 
@@ -1438,7 +1504,7 @@ public class  User {
 
 `@EqualsAndHashCode`注解数据成员和`@ToString`相同！
 
------
+###### @Builder和@Singular
 
 `@Builder`注解用于为一个实体类生成一个`Builder`类，如果实体类中有`List`、`Set`等集合类型，则额外添加清空所有成员的`clearXX()`方法，并且可以配合
 
@@ -1533,7 +1599,7 @@ public class  User {
    }
 ```
 
-----
+###### @Cleanup
 
 `@Cleanup`将用于自动关闭`IO`流，注意他将会包裹整个方法的所有代码！该注解接收一个数据成员，用于指定关闭外部资源的方法的名称！
 
@@ -1571,6 +1637,469 @@ public class  User {
    }
 ```
 
+###### @NonNull
+
+`@NonNull`可以标记在字段、参数上，标记在字段上，则会在判断是否字段为`null`的基础上，在构造器添加该字段的初始化！注意如果构造方法中有`this()`和`super()`则会在这行代码之后添加`null`检查
+
+```java
+package cn.argento.askia.apps.lombok;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class NonNullExample extends Object {
+    private String name;
+    @NonNull
+    private Integer id;
+
+    public NonNullExample(@NonNull String person) {
+        super();
+        this.name = person;
+    }
+}
+```
+
+```java
+// 生成：
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
+package cn.argento.askia.apps.lombok;
+
+import lombok.NonNull;
+
+public class NonNullExample {
+    private String name;
+    @NonNull
+    private Integer id;
+
+    public NonNullExample(@NonNull String person) {
+        if (person == null) {
+            throw new NullPointerException("person is marked non-null but is null");
+        } else {
+            this.name = person;
+        }
+    }
+
+    public NonNullExample(@NonNull Integer id) {
+        if (id == null) {
+            throw new NullPointerException("id is marked non-null but is null");
+        } else {
+            this.id = id;
+        }
+    }
+}
+```
+
+###### @SneakyThrows
+
+`@SneakyThrows`用于再抛出异常，数据成员`value`指定再抛出的类型，生成的代码会调用`Lombok`类的下面两个方法抛出异常：
+
+```java
+public static RuntimeException sneakyThrow(Throwable t) {
+   if (t == null) throw new NullPointerException("t");
+   return Lombok.<RuntimeException>sneakyThrow0(t);
+}
+
+@SuppressWarnings("unchecked")
+private static <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
+   throw (T)t;
+}
+```
+
+```java
+public class SneakyThrowsExample implements Runnable {
+  @SneakyThrows(UnsupportedEncodingException.class)
+  public String utf8ToString(byte[] bytes) {
+    return new String(bytes, "UTF-8");
+  }
+  
+  @SneakyThrows
+  public void run() {
+    throw new Throwable();
+  }
+}
+```
+
+生成：
+
+```java
+import lombok.Lombok;
+
+public class SneakyThrowsExample implements Runnable {
+  public String utf8ToString(byte[] bytes) {
+    try {
+      return new String(bytes, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw Lombok.sneakyThrow(e);
+    }
+  }
+  
+  public void run() {
+    try {
+      throw new Throwable();
+    } catch (Throwable t) {
+      // !!  
+      throw Lombok.sneakyThrow(t);
+    }
+  }
+}
+```
+
+###### @Synchronized
+
+`@Synchronized`作用于方法，代表方法是同步的！使用`value`数据成员指定锁！（指定锁的时候，锁一定要已经存在！）
+
+```java
+public class SynchronizedExample {
+  private final Object readLock = new Object();
+  
+  @Synchronized
+  public static void hello() {
+    System.out.println("world");
+  }
+  
+  @Synchronized
+  public int answerToLife() {
+    return 42;
+  }
+  
+  @Synchronized("readLock")
+  public void foo() {
+    System.out.println("bar");
+  }
+}
+```
+
+```java
+ public class SynchronizedExample {
+  private static final Object $LOCK = new Object[0];
+  private final Object $lock = new Object[0];
+  private final Object readLock = new Object();
+  
+  public static void hello() {
+    synchronized($LOCK) {
+      System.out.println("world");
+    }
+  }
+  
+  public int answerToLife() {
+    synchronized($lock) {
+      return 42;
+    }
+  }
+  
+  public void foo() {
+    synchronized(readLock) {
+      System.out.println("bar");
+    }
+  }
+}
+```
+
+###### @Value
+
+`@Value`和`@Data`很像，但`@Value`不会生成`Setter`方法，并且类和字段都会被设置成`final`形式，数据成员`staticConstructor()`和`@AllArgsConstructor`等的相同，可以指定`@NonFinal`注解来改变是否需要加`final`关键字：
+
+```java
+import lombok.AccessLevel;
+import lombok.experimental.NonFinal;
+import lombok.experimental.Value;
+import lombok.experimental.With;
+import lombok.ToString;
+
+@Value public class ValueExample {
+  String name;
+  @With(AccessLevel.PACKAGE) @NonFinal int age;
+  double score;
+  protected String[] tags;
+  
+  @ToString(includeFieldNames=true)
+  @Value(staticConstructor="of")
+  public static class Exercise<T> {
+    String name;
+    T value;
+  }
+}
+```
+
+生成：
+
+```java
+import java.util.Arrays;
+
+public final class ValueExample {
+  private final String name;
+  private int age;
+  private final double score;
+  protected final String[] tags;
+  
+  @java.beans.ConstructorProperties({"name", "age", "score", "tags"})
+  public ValueExample(String name, int age, double score, String[] tags) {
+    this.name = name;
+    this.age = age;
+    this.score = score;
+    this.tags = tags;
+  }
+  
+  public String getName() {
+    return this.name;
+  }
+  
+  public int getAge() {
+    return this.age;
+  }
+  
+  public double getScore() {
+    return this.score;
+  }
+  
+  public String[] getTags() {
+    return this.tags;
+  }
+  
+  @java.lang.Override
+  public boolean equals(Object o) {
+    if (o == this) return true;
+    if (!(o instanceof ValueExample)) return false;
+    final ValueExample other = (ValueExample)o;
+    final Object this$name = this.getName();
+    final Object other$name = other.getName();
+    if (this$name == null ? other$name != null : !this$name.equals(other$name)) return false;
+    if (this.getAge() != other.getAge()) return false;
+    if (Double.compare(this.getScore(), other.getScore()) != 0) return false;
+    if (!Arrays.deepEquals(this.getTags(), other.getTags())) return false;
+    return true;
+  }
+  
+  @java.lang.Override
+  public int hashCode() {
+    final int PRIME = 59;
+    int result = 1;
+    final Object $name = this.getName();
+    result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+    result = result * PRIME + this.getAge();
+    final long $score = Double.doubleToLongBits(this.getScore());
+    result = result * PRIME + (int)($score >>> 32 ^ $score);
+    result = result * PRIME + Arrays.deepHashCode(this.getTags());
+    return result;
+  }
+  
+  @java.lang.Override
+  public String toString() {
+    return "ValueExample(name=" + getName() + ", age=" + getAge() + ", score=" + getScore() + ", tags=" + Arrays.deepToString(getTags()) + ")";
+  }
+  
+  ValueExample withAge(int age) {
+    return this.age == age ? this : new ValueExample(name, age, score, tags);
+  }
+  
+  public static final class Exercise<T> {
+    private final String name;
+    private final T value;
+    
+    private Exercise(String name, T value) {
+      this.name = name;
+      this.value = value;
+    }
+    
+    public static <T> Exercise<T> of(String name, T value) {
+      return new Exercise<T>(name, value);
+    }
+    
+    public String getName() {
+      return this.name;
+    }
+    
+    public T getValue() {
+      return this.value;
+    }
+    
+    @java.lang.Override
+    public boolean equals(Object o) {
+      if (o == this) return true;
+      if (!(o instanceof ValueExample.Exercise)) return false;
+      final Exercise<?> other = (Exercise<?>)o;
+      final Object this$name = this.getName();
+      final Object other$name = other.getName();
+      if (this$name == null ? other$name != null : !this$name.equals(other$name)) return false;
+      final Object this$value = this.getValue();
+      final Object other$value = other.getValue();
+      if (this$value == null ? other$value != null : !this$value.equals(other$value)) return false;
+      return true;
+    }
+    
+    @java.lang.Override
+    public int hashCode() {
+      final int PRIME = 59;
+      int result = 1;
+      final Object $name = this.getName();
+      result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+      final Object $value = this.getValue();
+      result = result * PRIME + ($value == null ? 43 : $value.hashCode());
+      return result;
+    }
+    
+    @java.lang.Override
+    public String toString() {
+      return "ValueExample.Exercise(name=" + getName() + ", value=" + getValue() + ")";
+    }
+  }
+}
+```
+
+###### @With
+
+`@With`注解用来实现给类字段生成一个`withXXX`(`XXX`为字段名)的方法，其内部方法代码如下：
+
+```java
+public WithExample withAge(int age) {
+    return this.age == age ? this : new WithExample(name, age);
+}
+```
+
+`@With`可以标记在类和字段上,标记在类上，则为类的所有字段生成`withXXX()`，标记在字段上则单独生成`withXXX()`
+
+```java
+@Target({ElementType.FIELD, ElementType.TYPE})
+@Retention(RetentionPolicy.SOURCE)
+public @interface With {
+	// 用来设置访问级别
+	AccessLevel value() default AccessLevel.PUBLIC;
+	AnyAnnotation[] onMethod() default {};
+	AnyAnnotation[] onParam() default {};
+}
+```
+
+```java
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.With;
+
+public class WithExample {
+  @With(AccessLevel.PROTECTED) @NonNull private final String name;
+  @With private final int age;
+  
+  public WithExample(@NonNull String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+```
+
+生成：
+
+```java
+import lombok.NonNull;
+
+public class WithExample {
+  private @NonNull final String name;
+  private final int age;
+
+  public WithExample(String name, int age) {
+    if (name == null) throw new NullPointerException();
+    this.name = name;
+    this.age = age;
+  }
+
+  protected WithExample withName(@NonNull String name) {
+    if (name == null) throw new java.lang.NullPointerException("name");
+    return this.name == name ? this : new WithExample(name, age);
+  }
+
+  public WithExample withAge(int age) {
+    return this.age == age ? this : new WithExample(name, age);
+  }
+}
+```
+
+##### 扩展包注解（日志）
+
+扩展包中的注解主要用来生成日志`Logger`对象，如：
+
+```java
+private static final Logger log = LoggerFactory.getLogger(LogExample.class);
+```
+
+相关的注解主要有及其生成的`Logger`对象：
+
+- `Apache Commons Log`：`@CommonsLog`
+
+  ```java
+  private static final org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(LogExample.class);
+  ```
+
+- `Flogger`：`@Flogger`
+
+  ```java
+  private static final com.google.common.flogger.FluentLogger log = com.google.common.flogger.FluentLogger.forEnclosingClass();
+  ```
+
+- `JDK Log`：`@Log`
+
+  ```java
+  private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogExample.class.getName());
+  ```
+
+- `JBoss Log`：`@JBossLog`
+
+  ```java
+  private static final org.jboss.logging.Logger log = org.jboss.logging.Logger.getLogger(LogExample.class);
+  ```
+
+- `Log4j`：`@Log4j`、`@Log4j2`
+
+  ```java
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LogExample.class);
+  
+  private static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(LogExample.class);
+  ```
+
+- `Slf4J`：`@Slf4j`、`@XSlf4j`
+
+  ```java
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LogExample.class);
+  
+  private static final org.slf4j.ext.XLogger log = org.slf4j.ext.XLoggerFactory.getXLogger(LogExample.class);
+  ```
+
+- `CustomLog`：`@CustomLog`
+
+使用方法如下：
+
+```java
+@Log
+public class LogExample {
+  
+  public static void main(String... args) {
+  	// 这个log对象直接使用即可，lombok会生成！
+    log.severe("Something's wrong here");
+  }
+}
+```
+
+将会生成：
+
+```java
+public class LogExample {
+  private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogExample.class.getName());
+  
+  public static void main(String... args) {
+    log.severe("Something's wrong here");
+  }
+}
+```
+
+##### 实验包注解
+
+- https://blog.csdn.net/qq_39249094/article/details/107313582
+
+#### Jcommander
+
+http://jcommander.org/#_overview
+
 ## 引用文章参考
 
 - `《core java 11》`
@@ -1579,3 +2108,7 @@ public class  User {
 - `CSDN`文章
   - 语言级别`API`：https://www.cnblogs.com/wellcherish/p/17147811.html
   - 源码级别注解处理器：https://blog.csdn.net/zjcsuct/article/details/125285983
+- `Lombok`：
+  - 官方文档
+  - https://blog.csdn.net/qq_39249094/article/details/107313582
+- 

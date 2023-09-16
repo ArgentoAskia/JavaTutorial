@@ -1,6 +1,7 @@
 package cn.argento.askia.apps.lombok;
 
 import lombok.*;
+import lombok.experimental.PackagePrivate;
 
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @ToString
+@With
 public class User2 {
     public static void main(String[] args) {
         final User2 askia = User2.builder().addCard("123").addCard("456")
@@ -21,6 +23,7 @@ public class User2 {
         System.out.println(askia);
     }
 
+    @PackagePrivate
     public void print2DefaultUser(){
         var user1 = new User2();
         val user2 = new User2();

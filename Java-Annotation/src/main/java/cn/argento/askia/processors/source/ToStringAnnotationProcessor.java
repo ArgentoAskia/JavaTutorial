@@ -1,5 +1,8 @@
 package cn.argento.askia.processors.source;
 
+import lombok.NonNull;
+import lombok.Synchronized;
+
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
