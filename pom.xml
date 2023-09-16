@@ -43,6 +43,7 @@
         <module>Java-XML</module>
         <module>Java-YML</module>
         <module>Java-LanguageModel</module>
+        <module>Java-Logger</module>
 
     </modules>
     <properties>
