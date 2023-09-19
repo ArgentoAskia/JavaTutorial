@@ -5,6 +5,9 @@ import java.net.URI;
 import java.nio.file.*;
 import java.util.Iterator;
 
+/**
+ * Path APi Demo
+ */
 public class PathDemo {
     public static void main(String[] args) {
         Path relativePath  = FileSystems.getDefault().getPath("/abc", "efg", "hij", "..", "123", "456", "..", "789");

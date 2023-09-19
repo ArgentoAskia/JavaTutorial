@@ -11,7 +11,12 @@ import java.util.LinkedList;
  */
 public class FileCopyDemo {
 
-
+    /**
+     * 检查src和Dest是否为null
+     * @param src
+     * @param dest
+     * @throws FileNotFoundException
+     */
     private static void checkSrcAndDest(File src, File dest) throws FileNotFoundException {
         if (dest.exists()) {
             throw new RuntimeException("dest已存在！");
@@ -29,6 +34,13 @@ public class FileCopyDemo {
         }
     }
 
+    /**
+     * 采用channel的形式来进行复制，会快很多
+     * 采用FileChannel实现
+     * @param src
+     * @param dest
+     * @throws IOException
+     */
     private static void fastCopyFile(File src, File dest) throws IOException {
         checkSrcAndDest(src, dest);
         try (final FileChannel destChannel = new FileOutputStream(dest).getChannel();
@@ -37,6 +49,12 @@ public class FileCopyDemo {
         }
     }
 
+    /**
+     * 文件复制，采用FileOutputStream和FileInputStream实现
+     * @param src
+     * @param dest
+     * @throws IOException
+     */
     private static void copyFile(File src, File dest) throws IOException {
         checkSrcAndDest(src, dest);
         try (FileOutputStream fileOutputStream = new FileOutputStream(dest);
@@ -49,6 +67,12 @@ public class FileCopyDemo {
         }
     }
 
+    /**
+     * 递归目录复制！
+     * @param src
+     * @param dest
+     * @throws IOException
+     */
     private static void copyDir(File src, File dest) throws IOException {
         // 目录不存在
         if (src == null || !src.exists()) {
@@ -61,6 +85,12 @@ public class FileCopyDemo {
         copyDir0(src, dest);
     }
 
+    /**
+     * 复制目录辅助递归函数
+     * @param src
+     * @param dest
+     * @throws IOException
+     */
     private static void copyDir0(File src, File dest) throws IOException {
         // 如果目录不存在则创建目录
         if (!dest.exists()) {
@@ -86,6 +116,12 @@ public class FileCopyDemo {
         }
     }
 
+    /**
+     * 移动目录辅助递归函数！
+     * @param src
+     * @param dest
+     * @throws IOException
+     */
     private static void moveDir0(File src, File dest) throws IOException {
         // 如果目录不存在则创建目录
         if (!dest.exists()) {
@@ -104,6 +140,8 @@ public class FileCopyDemo {
                 // 如果是一个目录，则继续进行目录复制
                 if (poll.isDirectory()) {
                     moveDir0(poll, newDest);
+                    // 删除当前的目录，如"D:/abc",moveDir0()方法会将"D:/abc"里面的所有子目录和子文件删除
+                    // 删除了之后"D:/abc"就会变成空目录，这个时候就需要删除"D:/abc"本身
                     poll.delete();
                 } else if (poll.isFile()){
                     moveFile(poll, newDest);
@@ -112,6 +150,13 @@ public class FileCopyDemo {
         }
     }
 
+    /**
+     * 移动目录
+     * @param src
+     * @param dest
+     * @param deleteSrcDir 移动完成之后是否删除src目录！
+     * @throws IOException
+     */
     private static void moveDir(File src, File dest, boolean deleteSrcDir) throws IOException {
         // 目录不存在
         if (src == null || !src.exists()) {
@@ -122,6 +167,7 @@ public class FileCopyDemo {
             throw new RuntimeException();
         }
         moveDir0(src, dest);
+        // 代码存在的原因和131行和132行一样！
         if (deleteSrcDir){
             src.delete();
         }
@@ -135,7 +181,9 @@ public class FileCopyDemo {
      * @param dest
      */
     private static void moveFile(File src, File dest) throws IOException {
+        // 先进行复制
         fastCopyFile(src, dest);
+        // 然后删除文件即可！
         src.delete();
     }
 

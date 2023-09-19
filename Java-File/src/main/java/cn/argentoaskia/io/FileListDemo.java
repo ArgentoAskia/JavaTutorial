@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @author asus
  */
 public class FileListDemo {
+    // 修改这里的值，实现遍历各个磁盘
     private static final String diskRoot = "C:\\";
 
     private static final String root = "/";

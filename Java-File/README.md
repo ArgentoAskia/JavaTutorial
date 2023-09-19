@@ -3,8 +3,7 @@
 本篇主要介绍在`Java`中如何处理操作系统上的文件和目录，这些基础操作包括：
 
 1. 查看修改文件属性（创建日期、修改日期、只读等）和权限
-2. 移动、复制、删除、重命名文件和目录
-3. 文件和目录的创建
+2. 创建、移动、复制、删除、重命名文件和目录
 
 然后介绍`JDK 7`之后带来的新文件操作特性，包括：
 
@@ -41,7 +40,7 @@
 - `JDK1.7`以前位于`java.io`包的文件类如：
   - 基础文件目录操作：`File`
   - 文件描述符：`FileDescriptor`
-  - 文件权限及计算表示：`FilePermission`
+  - 文件权限及计算表示：`FilePermission`（仅仅是计算！）
 - `JDK1.7`以后位于`java.nio.file`包的类，包括：
   - 文件目录增强：`Files`、`Path`、`Paths`
   - 文件权限属性增强：`FileStore`、`attribute`包下各类操作系统的权限视图和权限属性
@@ -196,28 +195,68 @@
   // 用户过滤目录
   @FunctionalInterface
   public interface FileFilter {
-  	// pathname:代表当前遍历到的文件名
+  	// pathname:代表当前遍历到的子目录和文件，也是一个File对象
       boolean accept(File pathname);
   }
   ```
-
-这里给出了基于`File`的文件遍历方法：
-
-
 
 `File`类的最后，我们讨论一下`File`类无法实现的复制和移动操作，在`JDK 1.7`之前，想要实现复制、移动操作，一种方法是借助`IO`流来实现，`JDK 1.4`之后添加了`FileChannel`，则可以使用`Channel`来实现，在大文件复制上会比传统`IO`流快，实现文件复制的方式具体可以参考:
 
 > src/main/java/cn/argentoaskia/FileCopyDemo.java
 
+文件的遍历`API`的使用可以参考：
 
+> Java-File/src/main/java/cn/argentoaskia/io/FileWalkDemo.java
+
+另外这里提供了一个用于遍历分区盘的程序：
+
+> Java-File/src/main/java/cn/argentoaskia/io/FileListDemo.java
 
 ### FileDescriptor
 
+所谓的`FileDescriptor`，也叫文件描述符（`Linux`），文件句柄（`Windows`），一般用于代表一个打开的文件、套接字等，`Linux`系统进程就是通过文件描述符而不是文件名来访问文件的，`C`语言里面的`FILE *`实际上也是代表一个文件描述符！
+
+文件描述符实际上是一个非负整数！实际上，它是一个索引值，指向内核为每一个进程所维护的该进程打开文件的记录表。当程序打开一个现有文件或者创建一个新文件时，内核向进程返回一个文件描述符。程序在此文件描述符的基础上进行文件读写，另外关闭文件的时候也需要使用文件描述符来关闭。
+
+习惯上，标准输入（`standard input`）的文件描述符是 `0`，标准输出（`standard output`）是 `1`，标准错误（`standard error`）是 2。
+
+该类在`Java`的使用程度并不大，因为`Java`中强大的`IO`流家族使你无需关系这些底层的内容，引入该类的原因可能是考虑到兼容性文件！`FileInputStream`、`FileOutputStream`和`RandomAccessFile`、`FileReader`、`FileWriter`等在读取文件的时候就需要使用`FileDescriptor`，可以调用他们的`getFD()`来获取！
+
+```java
+public final FileDescriptor getFD() throws IOException {
+    if (fd != null) {
+        return fd;
+    }
+    throw new IOException();
+}
+```
+
+当然你不能自行创建一个`FileDescriptor`对象，但如果你代码中有`FileDescriptor`对象，你可以传递给`FileInputStream`、`FileOutputStream`来进行文件读写：
+
+```java
+FileOutputStream fileOutputStream = new FileOutputStream(FileDescriptor.out);
+FileInputStream fileInputStream1 = new FileInputStream(FileDescriptor.in);
+```
+
+另外这个类中，标准输入输出流的文件描述符如下：
+
+![image-20230916195309985](README/image-20230916195309985.png)
+
+我们也可以通过使用标准输入输出流的文件描述符来实现控制台输入输出，而不使用`System.in`、`System.out`：
+
+> 经过测试，只能输入，无法输出！
+
+`FileDescriptor`内部有两个字段特别注意：
+
+![image-20230916194523900](README/image-20230916194523900.png)
+
+`int`类型的参数代表`Linux`的文件描述符，而long类型的参数代表`Windows`的文件句柄，具体使用哪一个字段取决于系统是`Windows`还是`Linux`，出现这两个字段二选一使用的原因在于`Windows`系统和`Linux`系统打开文件时返回的这个整数句柄的的不同，`Windows`系统返回的是`HANDLE`结构（`64`位），而Linux则返回一个`int`（`32`位）
+
 ### FilePermission
 
+该类一般用于对文件权限进行运算！
 
-
-
+### 文件目录增强
 
 #### 使用Path类处理文件目录路径
 
@@ -302,6 +341,299 @@ File toFile();
 
 #### 使用Files伴随类做高级处理
 
-#### FileDescriptor
+用于文件或者目录复制、重命名、删除、创建、移动、查找等操作：
 
-#### FilePermission
+```java
+// 复制
+// 默认情况下如果target已经存在或者是一个符号链接（symbolic link，可以理解为快捷方式），则复制失败
+// 如果是source和target是同一个文件，则不进行复制！
+// 复制文件不复制文件的相关属性！
+// 如果source是一个符号链接，并且支持复制符号链接，则对应被链接的文件会被复制
+// 如果source是一个目录，则复制目录本身（空目录），不复制目录内的所有子目录和子文件！，可以配合walkFileTree()方法来实现复制子文件和子目录！
+// 默认options选项支持三个：
+//       StandardCopyOption.REPLACE_EXISTING: 如果target文件或者空目录存在，则覆盖！如果target是一个符号链接，则只覆盖符号链接而不覆盖链接对应的目标
+//       StandardCopyOption.COPY_ATTRIBUTES：复制文件连同属性一块复制，默认情况下最简单的复制会携带lastModifiedTime属性
+// 		 LinkOption.NOFOLLOW_LINKS：当source是一个符号链接的时候，直接复制符号链接而不是链接对应的文件
+public static Path copy(Path source, Path target, CopyOption... options);
+public static long copy(InputStream in, Path target, CopyOption... options);
+public static long copy(Path source, OutputStream out);
+// 创建目录
+// 连续创建多级目录，如果目录已存在不会抛出异常
+// 代表需要设置的目录属性，具体参考https://www.ietf.org/rfc/rfc3530.txt
+// 和AclEntry类有关，一般很少用！
+public static Path createDirectories(Path dir, FileAttribute<?>... attrs);
+// 只创建一级目录，如果目录已存在抛出异常
+public static Path createDirectory(Path dir, FileAttribute<?>... attrs);
+// 创建文件
+public static Path createFile(Path path, FileAttribute<?>... attrs);
+// 创建链接（硬链接）
+public static Path createLink(Path link, Path existing);
+// 创建符号链接
+public static Path createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs);
+// 创建临时目录
+public static Path createTempDirectory(Path dir, String prefix, FileAttribute<?>... attrs);
+public static Path createTempDirectory(String prefix,
+                                       FileAttribute<?>... attrs);
+// 创建临时文件
+public static Path createTempFile(Path dir,String prefix,String suffix,FileAttribute<?>... attrs);
+public static Path createTempFile(String prefix,String suffix,FileAttribute<?>... attrs);
+
+// 删除文件
+// 此方式删除文件或者空文件夹，如果文件夹不为空的情况下会报错
+public static void delete(Path path) throws IOException;
+// 如果是符号链接则删除符号链接本身！
+public static boolean deleteIfExists(Path path) throws IOException;
+
+// 查找文件
+public static Stream<Path> find(Path start,
+                                int maxDepth,
+                                BiPredicate<Path, 
+                                BasicFileAttributes> matcher,
+                                FileVisitOption... options);
+// 移动或者重命名文件
+// 支持移动所有子文件和子文件夹！
+// 支持两个属性：StandardCopyOption.REPLACE_EXISTING(如果目标存在，则覆盖！)、StandardCopyOption.ATOMIC_MOVE(保证原子性的移动，也就是说所有文件要么全移动过去，要么移动失败进行回滚！)
+// 如现在有两个目录：/var/2 /var/3,移动的方式是移动文件夹2到文件夹3，包括文件夹2本身，这实际上就是重命名,注意3目录必须不存在，否则会抛出AccessDeniedException
+// /var/2 /var/dir/3（3文件夹不存在） 同理，最终的移动结果是/var/2没有了，/var/2的内容全部都移动到了/var/dir/3
+public static Path move(Path source, Path target, CopyOption... options) throws IOException;
+```
+
+用于判断、获取和设置文件相关属性、文件是否存在、文件大小、获取链接等：
+
+```java
+// 文件是否存在！
+public static boolean exists(Path path, LinkOption... options);
+public static boolean notExists(Path path, LinkOption... options);
+public static Object getAttribute(Path path, String attribute, LinkOption... options);
+public static <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options);
+public static FileStore getFileStore(Path path) throws IOException;
+public static FileTime getLastModifiedTime(Path path, LinkOption... options);
+public static UserPrincipal getOwner(Path path, LinkOption... options);
+public static Set<PosixFilePermission> getPosixFilePermissions(Path path,LinkOption... options);
+
+public static boolean isDirectory(Path path, LinkOption... options);
+public static boolean isExecutable(Path path);
+public static boolean isHidden(Path path) throws IOException;
+public static boolean isReadable(Path path);
+public static boolean isRegularFile(Path path, LinkOption... options);
+public static boolean isSameFile(Path path, Path path2) throws IOException;
+public static boolean isSymbolicLink(Path path);
+public static boolean isWritable(Path path);
+
+// 获取文件的文件类型
+public static String probeContentType(Path path);
+
+public static <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options);
+public static Map<String,Object> readAttributes(Path path, String attributes, LinkOption... options);
+
+public static Path readSymbolicLink(Path link) throws IOException;
+public static Path setAttribute(Path path, String attribute, Object value, LinkOption... options);
+public static Path setLastModifiedTime(Path path, FileTime time);
+public static Path setOwner(Path path, UserPrincipal owner);
+public static Path setPosixFilePermissions(Path path, Set<PosixFilePermission> perms);
+public static long size(Path path) throws IOException;
+```
+
+用于转换成`IO`、`channel`、`Stream`等：
+
+```java
+public static Stream<String> lines(Path path) throws IOException;
+public static Stream<String> lines(Path path, Charset cs) throws IOException;
+
+// 使用特定文件来创建BufferedReader
+public static BufferedReader newBufferedReader(Path path) throws IOException;
+public static BufferedReader newBufferedReader(Path path, Charset cs) throws IOException;
+public static BufferedWriter newBufferedWriter(Path path, Charset cs, OpenOption... options);
+public static BufferedWriter newBufferedWriter(Path path, OpenOption... options);
+public static SeekableByteChannel newByteChannel(Path path, OpenOption... options);
+public static SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs);
+public static DirectoryStream<Path> newDirectoryStream(Path dir, String glob);
+public static DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter);
+public static DirectoryStream<Path> newDirectoryStream(Path dir, String glob);
+public static InputStream newInputStream(Path path, OpenOption... options);
+public static OutputStream newOutputStream(Path path, OpenOption... options);
+
+```
+
+用于简单文件读写：
+
+```java
+public static byte[] readAllBytes(Path path) throws IOException;
+public static List<String> readAllLines(Path path) throws IOException;
+public static List<String> readAllLines(Path path, Charset cs) throws IOExceptio;
+public static Path write(Path path, byte[] bytes, OpenOption... options);
+public static Path write(Path path, Iterable<? extends CharSequence> lines, Charset cs, OpenOption... options);
+public static Path write(Path path, Iterable<? extends CharSequence> lines, OpenOption... options);
+```
+
+用于简单文件遍历：
+
+```java
+public static Stream<Path> list(Path dir) throws IOException;
+public static Stream<Path> walk(Path start, FileVisitOption... options) throws IOException;
+public static Stream<Path> walk(Path start, int maxDepth, FileVisitOption... options);
+public static Path walkFileTree(Path start, FileVisitor<? super Path> visitor);
+public static Path walkFileTree(Path start, Set<FileVisitOption> options, int maxDepth, FileVisitor<? super Path> visitor);
+```
+
+#### 基于Files的文件遍历
+
+#### 文件属性
+
+#### FileStore文件存储卷
+
+`FileStore`表示存储池、设备、分区、卷、具体的文件系统或其他特定于文件存储的实现方式！
+
+JDK默认带两个实现：`WindowsFileStore`（`Windows`的存储池）和`ZipFileStore`（`zip`文件系统储存池）
+
+可以使用下面的`API`获取`FileStore`对象：
+
+```java
+// Files类的
+public static FileStore getFileStore(Path path) throws IOException
+// FileSystem类的
+public abstract Iterable<FileStore> getFileStores();
+```
+
+`API`如下：
+
+```java
+// 获取驱动器名称，也就是Windows资源管理器里面的C、D、E盘等后面跟着的盘符标识名称
+public abstract String name();
+// 获取驱动器类型，如NTFS、FAT32等
+public abstract String type();
+// 驱动器是否只读！
+public abstract boolean isReadOnly();
+// 获取总空间
+public abstract long getTotalSpace() throws IOException;
+// 获取驱动器剩余可使用的空间
+public abstract long getUsableSpace() throws IOException;
+// 获取驱动器未分配空间，和getUsableSpace()作用相同
+public abstract long getUnallocatedSpace() throws IOException;
+// 获取相关属性，可用的属性名请参考WindowsFileStore的getAttribute()和ZipFileStore的getAttribute()
+public abstract Object getAttribute(String attribute) throws IOException;
+
+public abstract boolean supportsFileAttributeView(Class<? extends FileAttributeView> type);
+public abstract boolean supportsFileAttributeView(String name);
+public abstract <V extends FileStoreAttributeView> V
+        getFileStoreAttributeView(Class<V> type);
+```
+
+另外默认情况下`WindowsFileStore`提供了这些属性给`getAttribute()`
+
+```
+totalSpace
+usableSpace
+unallocatedSpace
+volume_vsn
+volume_isRemovable
+volume_isCdrom
+```
+
+#### 文件监听机制
+
+`JDK 1.7`引入了文件监听系统，旨在监听文件系统目录的增删改查情况，其核心：
+
+- `Watchable`接口，用于注册监听服务，`Path`接口继承了该接口，里面使用`register`方法来注册监听：
+
+  ```java
+  WatchKey register(WatchService watcher,
+                    WatchEvent.Kind<?>[] events,
+                    WatchEvent.Modifier... modifiers)
+      throws IOException;
+  WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events)
+          throws IOException;
+  ```
+
+- `WatchEvent<T>`接口，监听事件接口，当目录存在更新的时候就会触发一个或者多个事件，产生多个`WatchEvent<T>`对象
+
+  ```java
+  // 表示获取监视事件的类型。
+  WatchEvent.Kind<T> kind();
+  
+  // 表示获取监视事件的数量，若大于 1，则这是一个重复事件。
+  int count();
+  
+  // 表示获取监视事件的上下文，即事件类型的泛型对象，通常为 Path 对象，可能为 null。
+  T context();
+  ```
+
+- `WatchKey`接口，代表被监听的目录对象！
+
+  ```java
+  // 表示判断 watch key 是否有效。
+  boolean isValid();
+  
+  // 表示获取 watch key 的所有事件，且清空事件集合，也就是说再次获取，将获取到一个空集合。
+  List<WatchEvent<?>> pollEvents();
+  
+  // 表示重置 watch key，若 watch key 无效，则返回 false。
+  boolean reset();
+  
+  // 表示取消监视服务，且将 watch key 设为无效。
+  void cancel();
+  ```
+
+- `WatchService`接口，代表监听服务，整个文件监听的核心！
+
+  ```java
+  // 表示关闭监视服务。
+  void close();
+  
+  /*
+      表示立即获取且移除下一个 watch key，若没有，则返回 null。一个 watch key 代表着监视
+      一个注册对象的事件集合，当一个注册对象发生改变时，就会产生一个 watch key。
+      非阻塞
+   */
+  WatchKey poll();
+  
+  /*
+      表示在指定时间之内获取且移除下一个 watch key，若没有，则返回 null。一个 watch key 
+      代表着监视一个注册对象的事件集合，当一个注册对象发生改变时，就会产生一个 watch key。
+      非阻塞
+   */
+  WatchKey poll(long timeout, TimeUnit unit);
+  
+  /* 
+      表示获取且移除下一个 watch key，若没有，则一直处于等待状态。一个 watch key 代表着监视
+      一个注册对象的事件集合，当一个注册对象发生改变时，就会产生一个 watch key。
+      阻塞
+   */
+  WatchKey take();
+  ```
+
+- `StandardWatchEventKinds`，枚举量，代表监听的事件的类型，如监听目录文件创建、修改、删除等！
+
+```java
+// 表示已丢失事件。
+static WatchEvent.Kind<Object> OVERFLOW;
+
+// 表示条目创建事件。
+static WatchEvent.Kind<Path> ENTRY_CREATE;
+
+// 表示条目删除事件。
+static WatchEvent.Kind<Path> ENTRY_DELETE;
+
+// 表示条目修改事件。
+static WatchEvent.Kind<Path> ENTRY_MODIFY;
+```
+
+基本的使用方法如下：
+
+1. 调用`FileSystems.getDefault().newWatchService()`获取`WatchService`实现
+2. 定义要监听的目录的监听的类型（只监听创建、或者监听创建修改等），需要使用`StandardWatchEventKinds`
+3. 使用`Path`对象的`register()`注册要监听的目录，传递`WatchService`对象和`StandardWatchEventKinds`的监听类型数组，每次调用`register()`都会返回一个`WatchKey`对象，代表一个被监听的目录（因为你可能会向同一个`WatchService`对象监听多个目录！因此可能会有多个`WatchKey`对象）
+4. 编写监听循环，这个循环可以放在一个线程内进行，简单的死循环即可
+5. 在这个死循环内，调用`watchService.take();`来获得当前哪个目录产生变更事件（`WatchKey`对象）
+6. 然后通过调用`WatchKey`对象的`isValid()`判断是否是一个合法的`key`，如果可以不合法，跳过！
+7. `key`合法，则调用`pollEvents()`获取在这个目录上产生的所有文件变更，会返回一个`List`
+8. 遍历这个`List`，调用`WatchEvent`的`context()`可以拿到在这个目录里面变更的文件名或者目录名，调用`count()`获取这个事件是否是一个重复事件，调用`kind()`获取变更的具体类型（创建、修改、删除）
+9. 遍历完成之后，调用`WatchKey`对象的`reset()`方法进行重置，等待下一轮监听
+10. 在这个过程中，如果出现任何问题需要关停监听服务的，调用`WatchService`对象的`close()`
+
+> 代码实现参考：Java-File/src/main/java/cn/argentoaskia/nio/FileStoreDemo.java
+
+#### 文件系统
+
+
+
