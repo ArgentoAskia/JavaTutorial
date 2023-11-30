@@ -5,7 +5,6 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Documented
 public @interface InheritedAnnotation {
     String version() default "1.0";
     String name() default "askia";
