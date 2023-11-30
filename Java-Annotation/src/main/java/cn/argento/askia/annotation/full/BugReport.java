@@ -28,15 +28,17 @@ public @interface BugReport {
 
     enum Status {UNCONFIRMED, CONFIRMED, FIXED, NOTABUG}
 
-    @interface Reference{
+    public @interface Reference{
         String ref() default "";
         String url() default "";
     }
-    interface B{
+    public interface B{
 
     }
 
-    class A{
+    // 定义inner class的时候默认是public级别的
+    // 并且除了public级别，其他级别不允许！
+    public class A{
         public void test(){
 
         }
