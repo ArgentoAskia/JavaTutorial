@@ -28,9 +28,9 @@ public @interface Common {
 
 ![image-20230902164439760](README/image-20230902164439760.png)
 
-发现其上有两个注解`@Target`、`@Retention`，这两个注解就是用于规定`@Override`作用范围和存储级别，这种规定注解接口的作用范围和行为属性的注解一般被称之为元注解，`JDK`中的元注解有5个：
+发现其上有两个注解`@Target`、`@Retention`，这两个注解就是用于规定`@Override`作用范围和存储级别，这种规定注解接口的作用范围和行为属性的注解一般被称之为元注解（即用来定义注解的注解），`JDK`中的元注解有`5`个：
 
-- `Target`：表示该注解能标记在哪个地方，可以传递多个`ElementType`的值：
+- `@Target`：表示该注解能标记在哪个地方，可以传递多个`ElementType`的枚举值，其枚举量如下：
 
   - `TYPE`：标记在类型上，如类、接口、枚举类
 
@@ -48,7 +48,7 @@ public @interface Common {
 
   - `PACKAGE`：标记在包上，一般和`package-info.java`有关
 
-  - `TYPE_PARAMETER`（`JDK 1.8`）：标记在类型参数上，如`T`，这里举个例子：
+  - `TYPE_PARAMETER`（`JDK 1.8`）：标记在泛型类型参数上，如`T`，这里举个例子：
 
     ```java
     @Target({ElementType.TYPE_PARAMETER, ElementType.TYPE_USE})
@@ -61,7 +61,7 @@ public @interface Common {
     }
     ```
 
-  - `TYPE_USE`（`JDK 1.8`）：标记在所有使用的类型上，如抛出的异常、继承时的类名、泛型的`?`等，这里举个例子：
+  - `TYPE_USE`（`JDK 1.8`）：标记在所有使用的类型上（只要是类型就行），如抛出的异常、继承时的类名、泛型的`?`等，这里举个例子：
 
     ```java
     @Target({ElementType.TYPE_PARAMETER, ElementType.TYPE_USE})
@@ -74,7 +74,7 @@ public @interface Common {
     }
     ```
 
-- `Retention`：表示该注解的处理方式，有三个值，只能填其一
+- `Retention`：表示该注解的存储级别，有三个值，只能填其一
 
   - `SOURCE`：源码级别，该注解在编译成字节码的时候会被去掉，类似于注释的处理！
   - `CLASS`：字节码级别，该注解在编译成字节码的时候会被保留，但不会被`JVM`加载，在处理字节码的时候能获取，但无法被反射`API`获取！
@@ -102,13 +102,17 @@ public @interface Common {
 - `Class`，如：`Class<?>`、`Class<Integer>`
 - `Enum`类型
 - 注解类型
-- 上面的所有元素的数组，如`Class<?>[]` `String[]`
+- 上面这些类型的数组，如`Class<?>[]` `String[]`
 
 我们仍然能在注解内部定义内部类、内部接口等，注解声明实际上是当作接口看的，在：
 
 > src/main/java/cn/argento/askia/annotation/full/BugReport.java
 
-中你可以看到一个注解能够定义的所有定义方式和内容，参考`Core Java 11`编写！
+中你可以看到一个注解能够定义的所有定义方式和内容，该`Demo`参考`Core Java 11`编写！
+
+值得注意的一点是：
+
+1. 在注解中定义内部类、内部枚举类、内部注解、内部接口等，默认都是`public`并且不允许使用其他的修饰级别如`private`、`protected`，这点也和接口一摸一样！
 
 注解数据的定义也很简单，只需要在定义数据变量加上括号即可，如：
 
@@ -159,7 +163,7 @@ public class @Common(version = "1.0.3", testClazz = Main.class) Main {
 }
 ```
 
-如果注解有一个特殊的数值成员`value`，并且当你只需要给这个`value`提供值的时候，可以不写项名：
+如果注解中定义了一个特殊的数值成员`value`，并且当你只需要给这个`value`提供值的时候，可以不写项名：
 
 ```java
 public class @Common("1.0.3") Main {
@@ -207,15 +211,7 @@ public class @Common Main {
 
 ### 注解标记的位置
 
-`@Target`元注解中共定义了`10`处位置给注解标记，关键的问题就是如何标记，或者说标记在哪里才算合法？比如对于一个当`@Target(ElementType.Field)`，下面的标记：
-
-```java
-@Field private String Field;
-private @Field String Field;
-private String @Field Field;
-```
-
-哪种合法？，就是本小节的探讨内容
+`@Target`元注解中共定义了`10`处位置给注解标记，关键的问题就是如何标记，或者说标记在哪里才算合法？
 
 > TYPE类型
 
@@ -247,10 +243,11 @@ public enum C{
 
 public class Main {
 
-	// 两种方式皆可！
+	// 三种方式皆可！
 	@Common
 	private A name;
 	@Common private A name;
+    private @Common A name;
 }
 
 public interface Main{
@@ -324,9 +321,11 @@ public class Main{
 
 ![image-20230902182112622](README/image-20230902182112622.png)
 
+参考写法：`src/main/java/cn/argento/askia/annotation/full/package-info.java`
+
 > TYPE_PARAMETER
 
-定义在所有定义类型参数变量的位置上，如：
+定义在所有类型参数变量的位置上，如：
 
 ```java
 public class Main<@Common T>{
@@ -346,7 +345,7 @@ public class Main<@Common T>{
 
 `java.lang`包：`@Deprecated`、`@FunctionalInterface`、`@Override`、`@SafeVarargs`、`@SuppressWarnings`
 
-`java.lang.annotation`包（元注解）：`@Documented`、`@Inherited`、`@Native`、`@Repeatable`、`@Retention`、`@Target`
+`java.lang.annotation`包（元注解包）：`@Documented`、`@Inherited`、`@Native`、`@Repeatable`、`@Retention`、`@Target`
 
 `javax.annotation`包：`@Generated`、`@PostConstruct`、`@PreDestroy`、`@Resource`等
 
@@ -356,13 +355,12 @@ public class Main<@Common T>{
 
 #### 可继承的注解
 
-标记了`@Inherited`的元注解标记在类上的时候可以在子类中被获取，我们定义一个注解：
+标记了`@Inherited`元注解的注解标记在类上的时候可以在子类中被获取，我们定义一个注解：
 
 ```java
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Documented
 public @interface InheritedAnnotation {
     String version() default "1.0";
     String name() default "askia";
@@ -370,11 +368,113 @@ public @interface InheritedAnnotation {
 }
 ```
 
-注意这种带`@Inherited`的注解只有标记在类上的时候才有继承性，如果标记在方法上或者标记在接口上，则无法实现注解继承！
+注意这种带`@Inherited`的注解只有标记在类上的时候才有继承性，如果标记在方法上或者标记在接口上或其他位置，则无法实现注解继承！
 
 定义一个`Father`类和`FatherInterface`接口，在`Father`类和`FatherInterface`接口上标记`@InheritedAnnotation`注解，在`Father`类上的某个方法上标记`@InheritedAnnotation`注解，然后让`Son`类继承`Father`类，`Son2`类实现`FatherInterface`，进行测试！
 
+> InheritedAnnotation.java
+
+```java
+@Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface InheritedAnnotation {
+    String version() default "1.0";
+    String name() default "askia";
+    Class<?> clazz() default Void.class;
+}
+```
+
+> Father.java
+
+```java
+@InheritedAnnotation(name = "Askia3")
+public class Father {
+    private String name;
+
+    public Father() {
+        this.name = "Askia";
+    }
+
+    public Father(String name) {
+        this.name = name;
+    }
+
+    @InheritedAnnotation(name = "Askia2")
+    public String getName() {
+        return name;
+    }
+
+    public Father setName(String name) {
+        this.name = name;
+        return this;
+    }
+}
+```
+
+> FatherInterface.java
+
+```java
+@InheritedAnnotation
+public interface FatherInterface {
+
+}
+```
+
+> Son.java
+
+```java
+public class Son extends Father implements Serializable, Comparable<Son> {
+
+    @Override
+    public String getName() {
+        return super.getName() + " = " + LocalDateTime.now();
+    }
+
+    @Override
+    public int compareTo(Son o) {
+        return 0;
+    }
+}
+```
+
+> Son2.java
+
+```java
+public class Son2 implements FatherInterface{
+}
+```
+
 在反射`API`中，获取`Runtime`级别的注解可以通过`getAnnotations()`和`getDeclaredAnnotations()`获取，他们的区别是`getDeclaredAnnotations()`不会获取继承性的注解！
+
+> 测试代码
+
+```java
+public class InheritedTest {
+    public static void main(String[] args) throws NoSuchMethodException {
+        // 方法上不会被继承
+        // 结果：[]
+        final Method getName = Son.class.getMethod("getName");
+        final Annotation[] annotations = getName.getAnnotations();
+        System.out.println(Arrays.toString(annotations));
+
+        // 子类被继承 Son类继承Father类，Father类上标记有@InheritedAnnotation注解！
+        // 结果：[@cn.argento.askia.annotation.inherited.InheritedAnnotation(name=Askia3, clazz=class java.lang.Void, version=1.0)]
+        final Annotation[] annotations1 = Son.class.getAnnotations();
+        System.out.println(Arrays.toString(annotations1));
+        
+        // DeclaredAnnotations获取直接注解！
+        // 结果：[]
+        final Annotation[] annotations12 = Son.class.getDeclaredAnnotations();
+        System.out.println(Arrays.toString(annotations12));
+
+        // 接口上也不会被继承
+        // 结果: []
+        final Annotation[] annotations2 = Son2.class.getAnnotations();
+        System.out.println(Arrays.toString(annotations2));
+    }
+}
+```
 
 结果只有标记在`Father`类上的注解能够被反射`API`获取，其他的都无法获取！具体可以参考`Demo`：
 
@@ -382,7 +482,18 @@ public @interface InheritedAnnotation {
 
 #### 可重复标记的注解
 
-标记了`@Repeatable`的元注解的注解可以重复标记在类、方法等上面，我们先定义一个注解：
+`@Repeatable`源代码如下：
+
+```java
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface Repeatable {
+    Class<? extends Annotation> value();
+}
+```
+
+标记了`@Repeatable`的元注解的注解支持重复标记在类、方法等上面。我们先定义一个注解，并将其变成可重复标记的注解：
 
 ```java
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
@@ -394,28 +505,19 @@ public @interface RepeatableAnnotation {
 }
 ```
 
-`@Repeatable`需要一个装载重复注解的容器，一般这个容器的名称是可重复注解加上`s`，`@Repeatable`源代码如下：
+`@Repeatable`需要一个装载重复注解的容器，这个容器一般也是一个注解。为了区分，其命名一般是可重复注解的名称加上`s`。
 
-```java
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.ANNOTATION_TYPE)
-public @interface Repeatable {
-    Class<? extends Annotation> value();
-}
-```
+另外这个容器注解的定义有下面的要求：
 
-这个容器注解的定义有下面的要求：
-
-1. `@Target`必须是重复注解的子集
-2. `@Retention`必须和重复注解相同
-3. 必须要定义`value()`数据成员来装载可重复注解
+1. `@Target`必须是可重复标记注解的全集或者子集
+2. `@Retention`必须和可重复标记注解相同
+3. 必须要定义`value()`数据成员来装载可重复注解，并且`value()`数据成员的类型是可重复标记注解的数组类型！
 4. 可重复的注解标记了`@Documented`，则注解容器也要标记`@Documented`
 
-我们先定义这个容器：
+我们现在根据上面的`4`个要求来定义这个容器注解：
 
 ```java
-// 根据第一条规则，这里必须是RepeatableAnnotation的@Target的子集，如下面的结果都是合法的
+// 根据第一条规则，这里必须是RepeatableAnnotation的@Target的全集或者子集，如下面的结果都是合法的
 // {ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE}
 // {ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE}
 // {ElementType.FIELD, ElementType.METHOD, ElementType.TYPE}
@@ -425,18 +527,22 @@ public @interface Repeatable {
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
 // 根据第二条规则，这里要和RepeatableAnnotation保持一致
 @Retention(RetentionPolicy.RUNTIME)
+// 根据第四条规定，因为@RepeatableAnnotation有@Documented，则其容器注解也要有
+@Documented
+// 容器注解的命名规则是可重复标记注解的名称 + s
 @interface RepeatableAnnotations{
-    // 根据第三条规则的定义！
+    // 根据第三条规则的定义！类型是RepeatableAnnotation[] 
     RepeatableAnnotation[] value() default {};
 }
 ```
 
-然后在`RepeatableAnnotation`标记上`@Repeatable`注解！
+然后在`RepeatableAnnotation`标记上`@Repeatable`注解！指定其对应的容器注解！
 
 ```java
 @Target({ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+// @Repeatable的源代码中是带有一个Class<? extends Annotation> value();成员的还记得不？
 @Repeatable(RepeatableAnnotations.class)
 public @interface RepeatableAnnotation {
 
@@ -519,18 +625,6 @@ public @interface Deprecated {
 }
 ```
 
-`JDK 11`时，该注解添加了两个数据成员：
-
-```java
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value={CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, MODULE, PARAMETER, TYPE})
-public @interface Deprecated {
-    String since() default "";				// 从哪个版本开始废弃
-    boolean forRemoval() default false;		// 是否后期移除
-}
-```
-
 **`@Deprecated`标记的内容，在被使用时会被加上删除线**
 
 ![image-20230904175630852](README/image-20230904175630852.png)
@@ -589,9 +683,11 @@ public @interface SafeVarargs {}
 
 `@SuppressWarnings`用于忽略某些警告，如上面的`unchecked`，参数`Value`可以填入警告类型，支持同时抑制多种警告
 
-可惜我并没有找到关于这个注解的`value`值有哪些，下表中的值来源个各大网站：
+可惜我并没有找到关于这个注解的`value`值有哪些，下表中的值来源于各大网站：
 
-部分无法翻译的或者没有把握是什么意思的则保留原文，写未知的代表该警告值不知道用在什么用途但确实存在该值！部分地方提供了`idea`的警告显示！
+部分无法翻译的或者没有把握是什么意思的则保留原文，写未知的则代表该警告值不知道用在什么用途但确实存在该值！部分地方提供了`idea`的警告显示！
+
+加粗的为常用值：
 
 | value                        | 中文描述                                                     | IDEA中警告显示                                               |
 | ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -612,7 +708,7 @@ public @interface SafeVarargs {}
 | **rawtypes**                 | **使用泛型时忽略没有指定相应类型的警告**                     |                                                              |
 | `restriction`                | `to suppress warnings relative to usage of discouraged or forbidden references` |                                                              |
 | `ReferenceEquality`          | 未知                                                         |                                                              |
-| `ResultOfMethodCallIgnored`  | 压制忽略返回值的警告                                         | ![image-20230904190541973](README/image-20230904190541973.png) |
+| `ResultOfMethodCallIgnored`  | 压制返回值被忽略的警告                                       | ![image-20230904190541973](README/image-20230904190541973.png) |
 | `SameParameterValue`         | 压制参数总是等于某个值的警告                                 | ![image-20230904190416564](README/image-20230904190416564.png) |
 | **serial**                   | **忽略在serializable类中没有声明serialVersionUID变量**       |                                                              |
 | `static-access`              | 抑制不正确的静态访问方式警告（`to suppress warnings relative to incorrect static access`） |                                                              |
@@ -990,13 +1086,15 @@ Locale getLocale();
 
 使用这三种方式的大前提是，注解处理器已经编译完成。因此您需要先对注解处理器进行编译再去编译带注解的源代码，或者是把注解处理器放到一个独立的`Jar`包引入。然后运行
 
-
+// 演示三种方法的使用流程！
 
 #### CLASS级别注解处理
 
+// 待补充，暂时不会字节码插桩！笨比博主在学了在学了！😭😭
+
 ### 注解源码结构
 
-所有的注解实际上都隐式地直接扩展于`java.lang.annotation.Annotation`**接口**，该接口是个**常规接口**，定义如下：
+所有的注解实际上都隐式地继承于`java.lang.annotation.Annotation`**接口**，该接口是个**常规接口**，定义如下：
 
 ```java
 public interface Annotation {
@@ -1355,6 +1453,10 @@ class sun.reflect.annotation.AnnotationInvocationHandler
 - `AnnotationInvocationHandler`有一个`Map`成员变量，用于存储所有的注解的属性赋值！
 - 在程序中，调用注解接口的方法，将会被代理类接管，然后根据方法名字，到`Map`里面拿相应的`Value`并返回。
 - 传递给`AnnotationInvocationHandler`的用于初始化`Map`成员变量的各种注解方法的默认值被`AnnotationParser`类的`parseXXX()`解析获得！
+
+#### 可重复标记注解的实现
+
+// 待补充...
 
 ### 注解应用框架
 
@@ -2100,6 +2202,8 @@ public class LogExample {
 
 http://jcommander.org/#_overview
 
+// 带补充...
+
 ## 引用文章参考
 
 - `《core java 11》`
@@ -2111,4 +2215,20 @@ http://jcommander.org/#_overview
 - `Lombok`：
   - 官方文档
   - https://blog.csdn.net/qq_39249094/article/details/107313582
-- 
+
+## JDK 11
+
+### @Deprecated
+
+`JDK 11`时，该注解添加了两个数据成员：
+
+```java
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value={CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, MODULE, PARAMETER, TYPE})
+public @interface Deprecated {
+    String since() default "";				// 从哪个版本开始废弃
+    boolean forRemoval() default false;		// 是否后期移除
+}
+```
+
