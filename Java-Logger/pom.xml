@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>JavaProject</artifactId>
+        <groupId>cn.argentoaskia</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>Java-Logger</artifactId>
+
+
+<!--    <dependencies>-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-slf4j-impl</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.19.0</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-reload4j &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>slf4j-reload4j</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.0.9</version>&ndash;&gt;-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-1.2-api</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.17.1</version>&ndash;&gt;-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>slf4j-log4j12</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-ext &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>slf4j-ext</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>1.7.12</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+
+
+<!--        &lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j2-impl &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-slf4j2-impl</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.20.0</version>&ndash;&gt;-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-api</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.17.1</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/commons-logging/commons-logging &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>commons-logging</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>commons-logging</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>1.2</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-jcl &ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-jcl</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.17.1</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.logging.log4j</groupId>-->
+<!--            <artifactId>log4j-core</artifactId>-->
+<!--            <version>2.21.0</version>-->
+<!--        </dependency>-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/jcl-over-slf4j &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>jcl-over-slf4j</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.0.9</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/jul-to-slf4j &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>jul-to-slf4j</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.0.9</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.logging.log4j</groupId>-->
+<!--            <artifactId>log4j-1.2-api</artifactId>-->
+<!--            <version>2.21.0</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.logging.log4j</groupId>-->
+<!--            <artifactId>log4j-1.2-api</artifactId>-->
+<!--            <version>2.21.0</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.apache.logging.log4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>log4j-to-slf4j</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.21.0</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-nop &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>slf4j-nop</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2.0.9</version>&ndash;&gt;-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-jcl &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>org.slf4j</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>slf4j-jcl</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>1.7.36</version>&ndash;&gt;-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+
+
+
+
+
+<!--    </dependencies>-->
+
+    <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+    </dependencies>
+
+
+</project>
