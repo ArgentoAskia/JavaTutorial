@@ -40,6 +40,7 @@ public class NIOEchoKeepAliveClient {
             while (true) {
                 ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
                 // 客户端的read()方法在非阻塞模式下读不到数据会返回0，阻塞模式下会阻塞
+                // 因为服务端还没有返回到数据，所以第一次这个if条件不符合！
                 if ((len = open.read(byteBuffer)) > 0){
                     byte[] array = byteBuffer.array();
                     String s = new String(array, 0, len);
@@ -50,10 +51,10 @@ public class NIOEchoKeepAliveClient {
 
                 // 使用Scanner类会导致收不到上一次的信息
                 // 模拟给服务端发信息
-//                String s = UUID.randomUUID().toString();
-//                System.out.println("给服务器写信息：" + s);
-//                ByteBuffer wrap = ByteBuffer.wrap(s.getBytes());
-//                open.write(wrap);
+                String s = UUID.randomUUID().toString();
+                System.out.println("给服务器写信息：" + s);
+                ByteBuffer wrap = ByteBuffer.wrap(s.getBytes());
+                open.write(wrap);
             }
         } else {
             System.out.println("服务器可能未开启或者存在较大网络波动！");

@@ -10,7 +10,10 @@ public class InetSocketAddressDemo {
         InetAddress loopbackAddress = InetAddress.getLoopbackAddress();
         InetSocketAddress inetSocketAddress = new InetSocketAddress(localHost, 2000);
         InetSocketAddress inetSocketAddress2 = new InetSocketAddress(loopbackAddress, 3000);
-        
+        InetSocketAddress inetSocketAddress3 = new InetSocketAddress("www.argentoaskia.cn", 4000);
+        // 该服务器还没有经过解析！
+        InetSocketAddress askia = InetSocketAddress.createUnresolved("www.argentoaskia.cn", 20000);
+
         InetAddress address = inetSocketAddress.getAddress();
         String hostName = inetSocketAddress.getHostName();
         String hostString = inetSocketAddress.getHostString();
@@ -30,11 +33,22 @@ public class InetSocketAddressDemo {
         System.out.println(hostString2);
         System.out.println(port2);
         System.out.println();
-        
+
+        final InetAddress address1 = inetSocketAddress3.getAddress();
+        final String hostString1 = inetSocketAddress3.getHostString();
+        final String hostName1 = inetSocketAddress3.getHostName();
+        final int port1 = inetSocketAddress3.getPort();
+        System.out.println(address1);
+        System.out.println(hostString1);
+        System.out.println(hostName1);
+        System.out.println(port1);
+        System.out.println();
+
         boolean unresolved = inetSocketAddress.isUnresolved();
         boolean unresolved2 = inetSocketAddress2.isUnresolved();
         System.out.println(unresolved);
         System.out.println(unresolved2);
+        System.out.println(askia.isUnresolved());
         
     }
 }

@@ -104,7 +104,8 @@ public class NIOEchoKeepAliveServer {
                         e.printStackTrace();
                     }
                 }).start();
-            }else if (cycle.get()){
+            }
+            else if (cycle.get()){
                 waiting();
                 System.out.println();
             }

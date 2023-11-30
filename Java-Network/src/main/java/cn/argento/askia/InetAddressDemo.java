@@ -16,28 +16,35 @@ public class InetAddressDemo {
         // 其中IpAddress使用字节表示
         byte[] addressBytes = {(byte)223, (byte)220, 0, 101};
         InetAddress address = InetAddress.getByAddress(addressBytes);
+        // 或者提供Host和IP地址来进行创建，注意这种创建方式不会进行DNS解析！因此IP和主机名可能是Fake的！
         InetAddress addressWithHost = InetAddress.getByAddress("Askia",addressBytes);
-        System.out.println(address);
-        System.out.println(addressWithHost);
+        System.out.println("通过byte[]创建IP：" + address);
+        System.out.println("通过byte[]和主机名来创建：" + addressWithHost);
         // 获取本机IP，注意和LoopbackAddress的区别
         InetAddress localHost = InetAddress.getLocalHost();
         InetAddress loopbackAddress = InetAddress.getLoopbackAddress();
-        System.out.println(localHost);
-        System.out.println(loopbackAddress);
+        System.out.println("localhost:" + localHost);
+        System.out.println("LoopbackAddress:" + loopbackAddress);
         // 通过主机名、域名来创建InetAddress
         // 传递域名会解析到对应的IP地址！
         InetAddress host = InetAddress.getByName("www.baidu.com");
+        InetAddress[] allByName = InetAddress.getAllByName("www.baidu.com");
         InetAddress host2 = InetAddress.getByName("www.argentoaskia.cn");
         InetAddress host3 = InetAddress.getByName(localHost.getHostName());
-        System.out.println(host);
+        System.out.println("百度域名解析出来的IP地址：" + Arrays.toString(allByName));
+        System.out.println("其中一个：" + host);
         System.out.println(host2);
         System.out.println(host3);
         System.out.println();
 
         // 2.使用getXXX()方法获取IP和Host
+        // 获取IP地址
         byte[] address1 = host2.getAddress();
+        // 获取原始主机名
         String canonicalHostName = host2.getCanonicalHostName();
+        // 获取域名
         String hostName = host2.getHostName();
+        // 获取IP地址
         String hostAddress = host2.getHostAddress();
         System.out.println(Arrays.toString(address1));
         System.out.println(canonicalHostName);

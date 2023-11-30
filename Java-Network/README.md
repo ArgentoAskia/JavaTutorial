@@ -206,6 +206,143 @@ public int getDefaultPort();
 public boolean sameFile(URL other)
 ```
 
+#### URL编码器解码器
+
+你可能在浏览器中看到类似的`URL`：
+
+```
+https://www.baidu.com/s?ie=utf-8&wd=%E9%98%BB%E5%A1%9E%E5%92%8C%E9%9D%9E%E9%98%BB%E5%A1%9E%E5%8C%BA%E5%88%AB
+```
+
+为什么需要将一个采用这种手段呢？实际上，**进行URL编码的主要原因是为了避免引发歧义与混乱。**
+
+首先`URL`允许你给服务端携带一些数据，一种携带方法是在`URL`后面拼接`Key=value`的键值对（`Form`表单中的`GET`请求方式，多个使用`&`进行区分），在这种情况下，你可能就需要带一些中文数据！
+
+出于成本、解析难度等因素考虑，`URL`中只允许包含英文字母、数字、`-_.~`（四个特殊字符：横杠、下划线、点、波浪号）。
+
+如果`URL`中包含了其他字符如：空格、引号、中文等，那么那么可能会造成服务器或者浏览器的解析错误，或者导致`URL`的语义变化，但我们在数据传递的时候又确实需要这些字符，因此浏览器定下了下面两个扩展的解析条件：
+
+- 使用`+`代替所有的空格，多个连续的空格都会被`+`代替
+- 将其他所有字符编码为`UTF-8`，并将每一个字符都编码为`%`后面紧跟一个两位的十六进制数字
+
+因此也就有了上面的链接，在网上有很多关于`URL`编码和解码的工具。那么在`Java`中又如何将一个`URL`进行编码呢？`java.net`包中提供了`URLDecoder`类和`URLEncoder`类：
+
+```java
+// URLDecoder
+public static String decode(String s, String enc) throws UnsupportedEncodingException;
+
+// URLEncoder
+public static String encode(String s, String enc) throws UnsupportedEncodingException;
+
+// 参数s：代表提供的URL
+// 参数enc：代表用于编码的字符集，如：UTF-8、GBK、UTF-16等！
+```
+
+```java
+public class URLCoderDemo {
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        String url = "https://www.baidu.com/s?ie=utf-8&wd=%E9%98%BB%E5%A1%9E%E5%92%8C%E9%9D%9E%E9%98%BB%E5%A1%9E%E5%8C%BA%E5%88%AB";
+        // 解码，第一个参数传递要解码的url，第二个指定编码！
+        String decode = URLDecoder.decode(url, "utf-8");
+        System.out.println(decode);
+        // 编码
+        String encode = URLEncoder.encode(decode, "utf-8");
+        System.out.println(encode);
+        String gbk = URLEncoder.encode(decode, "GBK");
+        System.out.println(gbk);
+    }
+}
+// 输出：
+https://www.baidu.com/s?ie=utf-8&wd=阻塞和非阻塞区别
+
+https%3A%2F%2Fwww.baidu.com%2Fs%3Fie%3Dutf-8%26wd%3D%E9%98%BB%E5%A1%9E%E5%92%8C%E9%9D%9E%E9%98%BB%E5%A1%9E%E5%8C%BA%E5%88%AB
+    
+https%3A%2F%2Fwww.baidu.com%2Fs%3Fie%3Dutf-8%26wd%3D%D7%E8%C8%FB%BA%CD%B7%C7%D7%E8%C8%FB%C7%F8%B1%F0
+```
+
+#### 网络IP地址和主机名
+
+`java.net`包中提供了`InetAddress`类来代表`IP`地址，并提供IP地址和主机名之间的解析功能，`InetSocketAddress`类则在`InetAddress`类的基础上添加加上端口（`Port`）
+
+`InetAddress`类中提供了下面的静态方法来创建`InetAddress`对象：
+
+```java
+// 通过主机名，域名等进行解析，Java会自动解析出对应的所有IP地址
+// 因此可以使用该方法来实现DNS解析功能
+public static InetAddress[] getAllByName(String host) throws UnknownHostException;
+// 提供一个数组如：[10,0,1,79]这样的数组来创建IP地址
+public static InetAddress getByAddress(byte[] addr) throws UnknownHostException;
+// 提供主机名和IP地址进行创建
+// 该方法不会DNS解析，所以创建出来的地址和主机名可能是一个假地址！
+public static InetAddress getByAddress(String host, byte[] addr) throws UnknownHostException;
+// 通过主机名，域名等进行解析，Java会自动解析出对应的所有IP地址，返回第一个结果！
+// 该方法也会进行DNS解析
+public static InetAddress getByName(String host) throws UnknownHostException;
+```
+
+另外还有获取本机地址的方法：
+
+```java
+// 获取本机地址，如：LAPTOP-045ABBCV4/192.168.56.1
+public static InetAddress getLocalHost() throws UnknownHostException;
+// 获取本机回环测试地址，也就是localhost/127.0.0.1
+public static InetAddress getLoopbackAddress();
+```
+
+`InetAddress`的对象方法：
+
+```java
+// 获取IP地址，由于Java中byte数组的范围在[-128-127]之间，所以一些高于127的字段将会使用负数代替，计算公式如下：127 + |129 + 负数的IP段| = 真正的IP段：
+// 如：[-71, -57, 108, -103]使用上面的的公式计算出来的IP是：185.199.108.153
+public byte[] getAddress();
+// 获取计算之后的IP，该API会计算IP字节数组得到真正的IP地址！
+public String getHostAddress();
+// 获取原始域名（最原始的解析）
+public String getCanonicalHostName();
+// 获取最接近用户层的域名
+public String getHostName();
+
+// 该地址是否是一个子网掩码（wildcard address）
+public boolean isAnyLocalAddress();
+// 是否是一个链路本地地址（Link Local Address）
+public boolean isLinkLocalAddress();
+// 是否是本地回环地址（127.0.0.1）
+public boolean isLoopbackAddress();
+// check if the multicast address has global scope.
+// 范围224.0.1.0 to 238.255.255.255
+public boolean isMCGlobal();
+// check if the multicast address has link scope.
+// 224.0.0/24开头
+public boolean isMCLinkLocal();
+// check if the multicast address has node scope.
+// IPv6专属
+public boolean isMCNodeLocal();
+// check if the multicast address has organization scope.
+// IP地址范围：239.192 - 239.195
+public boolean isMCOrgLocal();
+// check if the multicast address has site scope.
+// 即IP地址以239.255开头
+public boolean isMCSiteLocal();
+// 是否是广播地址（IP multicast address），即D类地址。
+public boolean isMulticastAddress();
+// 该地址是否可达，指定超时时间！
+public boolean isReachable(int timeout) throws IOException;
+public boolean isReachable(NetworkInterface netif, int ttl,
+                               int timeout) throws IOException;
+// 是否是本地站点地址（SiteLocalAddress）
+public boolean isSiteLocalAddress();
+```
+
+#### 网络接口（网卡接口）
+
+
+
+
+
+
+
+
+
 ### TCP
 
 关于`TCP`的介绍，可以参考这里：
