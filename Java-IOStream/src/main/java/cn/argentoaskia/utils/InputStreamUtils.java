@@ -1,6 +1,6 @@
 package cn.argentoaskia.utils;
 
-import cn.argentoaskia.demo.InputStreamDemo;
+import cn.argentoaskia.iostream.bytes.InputStreamDemo;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 /**
