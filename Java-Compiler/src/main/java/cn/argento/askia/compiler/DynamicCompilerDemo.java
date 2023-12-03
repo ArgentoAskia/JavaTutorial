@@ -1,4 +1,4 @@
-package cn.argento.askia;
+package cn.argento.askia.compiler;
 
 import javax.script.Invocable;
 import javax.tools.JavaCompiler;

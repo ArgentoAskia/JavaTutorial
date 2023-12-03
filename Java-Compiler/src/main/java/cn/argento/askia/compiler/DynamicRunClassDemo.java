@@ -1,8 +1,7 @@
-package cn.argento.askia;
+package cn.argento.askia.compiler;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 
 /**
  * Demo演示了如何加载一个class文件并运行！

@@ -1,4 +1,4 @@
-package cn.argento.askia;
+package cn.argento.askia.cmd;
 
 import java.io.Console;
 import java.io.File;

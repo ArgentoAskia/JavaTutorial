@@ -1,4 +1,4 @@
-package cn.argento.askia;
+package cn.argento.askia.compiler;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
