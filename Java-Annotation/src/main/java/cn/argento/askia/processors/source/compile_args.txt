@@ -1,1 +1,12 @@
 javac -cp D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java -processor cn.argento.askia.processors.source.ToStringAnnotationProcessor User.java -XprintRounds
+
+// 生成的ToStrings.java会放在javac运行的回显位置，如你的cmd是这样的：
+C:\Users\asus>javac -cp D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java -processor cn.argento.askia.processors.source.ToStringAnnotationProcessor D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java\cn\argento\askia\processors\source\User.java -XprintRounds
+// 则生成的ToStrings.java会放在C:\Users\asus里面！
+
+
+// 当然你可以使用-s 参数指定生成的源文件的位置
+// 另外说一下 -d 是指定生成的class文件的位置
+// -h 指定生成的头文件的位置
+javac -s D:\ -cp D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java -processor cn.argento.askia.processors.source.ToStringAnnotationProcessor D:\OpenSourceProject\JavaProject\Java-Annotation\src\main\java\cn\argento\askia\processors\source\User.java -XprintRounds
+
