@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 
 /**
- * Demo演示了如何运行字节码
+ * Demo演示了如何加载一个class文件并运行！
  */
 public class DynamicRunClassDemo {
     public static void main(String[] args) throws Exception {

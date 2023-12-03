@@ -11,6 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Demo演示了如何编译一个String变量中的代码并动态执行，返回结果！
+ */
 public class DynamicCompilerCodeDemo {
     private static final String DEFAULT_CODE_CLASS_NAME = "cn.argento.askia.HelloWorld";
     private static final String DEFAULT_CODE = "package cn.argento.askia;\n" +

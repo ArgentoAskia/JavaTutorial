@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * ClassFileManager的另外一种写法，不实现Forwarding类而是直接实现StandardJavaFileManager
+ */
 public class ClassFileManager2 implements StandardJavaFileManager {
 
     private StandardJavaFileManager systemDefault;

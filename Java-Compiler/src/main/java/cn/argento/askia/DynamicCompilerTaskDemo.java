@@ -10,6 +10,7 @@ import java.util.Locale;
 
 /**
  * 基于getTask的编译运行方式
+ * Demo演示了如何将一个Java文件通过getTask()的形式动态编译并加载运行！
  */
 public class DynamicCompilerTaskDemo {
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {

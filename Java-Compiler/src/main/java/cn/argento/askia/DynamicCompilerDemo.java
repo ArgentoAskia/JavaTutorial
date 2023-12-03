@@ -7,7 +7,7 @@ import javax.tools.ToolProvider;
 import java.io.*;
 
 /**
- * 代码级别运行javac.exe
+ * 代码级别运行javac.exe 并通过CMD的形式运行java.exe执行编译后的class文件！
  */
 public class DynamicCompilerDemo {
     public static void main(String[] args) throws IOException {
