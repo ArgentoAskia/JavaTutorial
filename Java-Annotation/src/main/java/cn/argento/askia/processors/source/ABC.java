@@ -3,7 +3,7 @@ package cn.argento.askia.processors.source;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
+@Deprecated
 public class ABC {
     public static void main(String[] args) throws UnsupportedEncodingException {
         String a = "abcdefg我爱中国Hello World！除非你让我很开心！自发臧否！";
