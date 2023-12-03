@@ -63,7 +63,7 @@ CompilationTask getTask(Writer out,
 // fileManager: 标准的文件管理器，提供null则使用系统默认fileManager
 // diagnosticListener: 监听编译信息的监听器，提供null则使用System.err。
 // options: 编译器的编译参数，如-sourcepath等，null则不传递任何编译参数
-// classes: 注解处理器的类名，如果要编译的代码中没有源码级别注解则传递null
+// classes: 要提供给注解处理器进行处理的类的类名，注意提供的类名对应的类必须存在于classpath中，否则会编译失败并提示找不到类文件！这里的类会连同编译的类一块被传递给注解处理器，在注解处理器的process方法中使用currentRoundEnv.getRootElements();获取。该参数为了方便注解处理器处理多个类
 // compilationUnits: 用于编译的代码，要求提供JavaFileObject接口对象，需要自己实现JavaFileObject接口
 
 // 另外diagnosticListener的监听优先级会比out高，如果不提供diagnosticListener参数则会使用out来输出编译的错误信息！一般out参数提供null即可！
@@ -373,6 +373,12 @@ public class ClassFileManager2 implements StandardJavaFileManager {
 ![调用时序](README/调用时序.png)
 
 可以看出`javax.tools`包的`API`仍然很原始，甚至有点难用，我们可以对其进行一些简易的封装！具体封装方法在后面介绍！
+
+##### 带注解处理器的编译任务
+
+
+
+
 
 #### Tools接口包详解
 
