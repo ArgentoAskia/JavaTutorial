@@ -3,7 +3,9 @@ package cn.argento.askia.compiler.annotation;
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -11,7 +13,7 @@ import java.util.*;
  *
  */
 public class DynamicAnnotationProcessCompilerTaskDemo {
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
         final JavaCompiler systemJavaCompiler = ToolProvider.getSystemJavaCompiler();
 
         // 创建监听器
@@ -60,6 +62,36 @@ public class DynamicAnnotationProcessCompilerTaskDemo {
             System.exit(1);
         }
         standardFileManager.close();
+
+
+        // 动态加载注解处理器的类和编译出来的User类
+        final ClassLoader classLoader = standardFileManager.getClassLoader(StandardLocation.CLASS_PATH);
+        final Class<?> userClass = classLoader.loadClass("cn.argento.askia.compiler.annotation.User");
+        final Class<?> toStringsClass = classLoader.loadClass("cn.argento.askia.compiler.annotation.ToStrings");
+        System.out.println(userClass);
+        System.out.println(toStringsClass);
+
+        // User[id = 10, name = Askia, Address = china]
+        final Object userObj = userClass.newInstance();
+        final Field[] declaredFields = userClass.getDeclaredFields();
+        for (Field f :
+                declaredFields) {
+            f.setAccessible(true);
+            if (f.getName().equalsIgnoreCase("id")){
+                f.setInt(userObj, 10);
+            }
+            else if (f.getName().equalsIgnoreCase("name")){
+                f.set(userObj, "Askia");
+            }
+            else {
+                f.set(userObj, "china");
+            }
+        }
+
+        // call ToStrings.toString(User user)
+        final Method toStringMethod = toStringsClass.getMethod("toString", userClass);
+        final Object invoke = toStringMethod.invoke(null, userObj);
+        System.out.println(invoke);
 
     }
 }
