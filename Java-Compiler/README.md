@@ -14,9 +14,10 @@
 
 编译器`API`的核心实现思路实际上是依赖`javac.exe`实现的，`Runtime`类中有一个`exec()`，用来执行系统命令（如`Windows`的`CMD`指令、`Linux`的`bash`命令），编译器`API`对这个执行方式进行了封装！
 
-`Java API`中提供了`JavaCompiler`接口来编译代码，该接口的对象需要使用工厂类`ToolProvider`对象，使用下面的方法来创建：
+`Java API`中提供了`JavaCompiler`接口来编译代码，该接口的对象需要使用工厂类`ToolProvider`对象，并使用下面的方法来创建：
 
 ```java
+// 获取JavaCompiler编译器对象
 public static JavaCompiler getSystemJavaCompiler();
 ```
 
@@ -24,7 +25,7 @@ public static JavaCompiler getSystemJavaCompiler();
 final JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
 ```
 
-拿到`JavaCompiler`对象中，可以使用这个方法来将`java`文件编译成`class`文件
+拿到`JavaCompiler`对象中，可以使用`run()`方法来将`java`文件编译成`class`文件
 
 ```java
 int run(InputStream in, OutputStream out, OutputStream err, String... arguments);
@@ -43,7 +44,7 @@ final int run = systemJavaCompiler.run(null, null, null, "-sourcepath", "src", "
 
 当然上面的方法只能将`java`文件编译成`class`文件，要运行起来这个`class`文件，则需要使用`java.exe`。
 
-不过`JDK`并没有提供`java.exe`的封装，所以要运行代码只能使用`Runtime`的`exec()`，代码可以参考：
+`JDK`并没有提供`java.exe`的封装，所以要运行代码只能使用`Runtime`的`exec()`，代码可以参考：
 
 > Java-Compiler/src/main/java/cn/argento/askia/DynamicCompilerDemo.java
 
@@ -62,13 +63,13 @@ CompilationTask getTask(Writer out,
 // fileManager: 标准的文件管理器，提供null则使用系统默认fileManager
 // diagnosticListener: 监听编译信息的监听器，提供null则使用System.err。
 // options: 编译器的编译参数，如-sourcepath等，null则不传递任何编译参数
-// classes: 该参数用于注解处理，如果要编译的代码中没有注解则传递null
+// classes: 注解处理器的类名，如果要编译的代码中没有源码级别注解则传递null
 // compilationUnits: 用于编译的代码，要求提供JavaFileObject接口对象，需要自己实现JavaFileObject接口
 
 // 另外diagnosticListener的监听优先级会比out高，如果不提供diagnosticListener参数则会使用out来输出编译的错误信息！一般out参数提供null即可！
 ```
 
-`getTask()`将会返回`CompilationTask`对象，该对象代表编译任务，所属的类是一个接口，并且实现了`Callable`接口，调用`getTask()`方法并不会启动编译过程，需要将其对象传递给`ExecutorService`以实现并行执行，或者直接调用`call()`方法进行同步调用即可开始编译：
+`getTask()`将会返回`CompilationTask`对象，该对象代表编译任务，所属的类是一个接口，并且实现了`Callable`接口，调用`getTask()`方法并不会直接启动编译过程，需要将其对象传递给`ExecutorService`以实现并行执行，或者直接调用`call()`方法进行同步调用即可开始编译：
 
 ```java
 Boolean call();
@@ -398,7 +399,7 @@ javac.exe -d D:/class cn.argento.askia.HelloWorld.java
    2. `JavaFileObject`：该接口代表一个`java`代码目标文件，提供字符串`java`代码存储能力
    3. `SimpleJavaFileObject`：`JavaFileObject`接口的一个简单实现，内部完成了一些属性的定义，可以继承该类来实现我们的`JavaFileObject`而不需要实现`JavaFileObject`接口
 3. 用于定义参数是否合法：
-   1. `OptionChecker`：提供判断参数是否合法的能力
+   1. `OptionChecker`：提供判断参数是否合法的接口，开发者可以实现该接口为第三方工具做参数合法性判断！
 4. 用于目标文件和编译产物之间的管理：
    1. `JavaFileManager`：用于管理`java`文件对象编译成功之后的字节码产物
    2. `StandardJavaFileManager`：`JavaFileManager`的子接口，提供了将一个`java`文件转为`JavaFileObject`的能力！
