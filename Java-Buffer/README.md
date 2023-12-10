@@ -1,5 +1,9 @@
 ## Java-Buffer
 
+`Buffer`是自`JDK 1.4`之后引入的内容，并在`JDK 1.7`中被大量优化，`Buffer`提供了一套基于数组的缓冲区域并定义了相关的属性来规定`Buffer`的基本操作，使内容实现动态存储和获取，由于`Buffer`类的缓冲特性，它被广泛应用于需要大量`IO`操作的地方，如网络编程！
+
+本章会先介绍`Buffer`类的实现和`Buffer`的基本属性、`Buffer`底层数组模型，然后介绍`Buffer API`中的基本操作和可选操作（包括`Array-Backed Buffer`、`Read-Only Buffer`、`Direct Buffer`），再介绍`Buffer`类中最重要的实现`ByteBuffer`，几乎其他的Buffer实现类都是基于`ByteBuffer`的，因此我们着重介绍它，最后，介绍其他`Buffer`实现的基本`API`，只要了解了`ByteBuffer`，其他的`Buffer`实现也就只剩下`API`了，最后的最后，我们再来介绍一个应用于文件的`Buffer`：`MappedByteBuffer`，即所谓的内存文件！
+
 ### 简介
 
 所谓`Buffer`（缓冲区）是一组特定的基本类型数据（除`Boolean`之外）的容器！底层实现则是一个数组。在这个容器内，数据可被存储并在之后用于检索。缓冲区可以被写满或释放。所有的`Buffer`类再`java.nio`包下：
@@ -8,17 +12,17 @@
 
 可以注意到`Buffer`的子类有：
 
-- `ByteBuffer`：
-- `CharBuffer`：
-- `DoubleBuffer`：
-- `FloatBuffer`：
-- `IntBuffer`：
-- `LongBuffer`：
-- `ShortBuffer`：
+- `ByteBuffer`：用于处理字节的`Buffer`
+- `CharBuffer`：用于处理`char`的`Buffer`
+- `DoubleBuffer`：用于处理`Double`的`Buffer`
+- `FloatBuffer`：用于处理`Float`的`Buffer`
+- `IntBuffer`：用于处理`Int`的`Buffer`
+- `LongBuffer`：用于处理`Long`的`Buffer`
+- `ShortBuffer`：用于处理`Short`的`Buffer`
 
 可以看到是没有`Boolean`类型的`Buffer`类的，另外尽管缓冲区作用于它们存储的原始数据类型，但缓冲区十分倾向于处理字节。非字节缓冲区可以在后台执行从字节或到字节的转换，这取决于缓冲区是如何创建的。
 
-`Buffer`类的主要作用是提供一种缓冲和传输数据的功能，差分数据之间的读写，因此`Buffer`类非常适合`Java`网络编程环境，同时`Buffer`类还提供例如标记、回溯、位置顺序读取功能。一般情况下，`Buffer`除了内容之外，还具备下面的四个属性：
+`Buffer`类的主要作用是提供一种缓冲和传输数据的功能，差分数据之间的读写，同时`Buffer`类还提供例如标记、回溯、位置顺序读取功能。一般情况下，`Buffer`除了内容之外，还具备下面的四个属性：
 
 - `capacity`（容量）：代表缓冲区的大小，容量必须是非负数且一旦确定永远不变！
 - `limit`（上限）：代表缓冲区第一个不能被读或写的元素，该值不能大于`capacity`，值非负且值可变！
@@ -182,7 +186,7 @@ public final boolean hasRemaining();
 
 同时`Buffer`抽象类中也定义了很多子类需要重写的抽象方法，这些方法在具体的子`Buffer`中稍有不同：
 
-##### array-backed Buffer
+##### Array-Backed Buffer
 
 ```java
 // 返回该Buffer的参考数组,具体的Buffer子类重写方法时需要更改返回值为具体类型的数组类型，如ByteBuffer则返回值Object改为byte[]，CharBuffer则返回值改为Char[]，以此类推！
@@ -255,7 +259,7 @@ ByteBuffer buf = ByteBuffer.allocate(1024);
 
 1. 由于是游离于`JVM`的内存，首先要面对的就是堆外内存回收问题，以及堆外内存的泄漏问题。
 
-2. 堆外内存的数据结构问题：堆外内存最大的问题就是你的数据结构变得不那么直观，如果数据结构比较复杂，就要对它进行串行化（serialization），而串行化本身也会影响性能。另一个问题是由于你可以使用更大的内存，你可能开始担心虚拟内存（即硬盘）的速度对你的影响了。
+2. 堆外内存的数据结构问题：堆外内存最大的问题就是你的数据结构变得不那么直观，如果数据结构比较复杂，就要对它进行串行化（`serialization`），而串行化本身也会影响性能。另一个问题是由于你可以使用更大的内存，你可能开始担心虚拟内存（即硬盘）的速度对你的影响了。
 
 ###### 关于进程4G可用地址空间（补）
 
@@ -263,13 +267,7 @@ ByteBuffer buf = ByteBuffer.allocate(1024);
 
 一个存储单元存储一个字节（8个1或者0）的数据！我们有`4,294,967,296`个存储单元，那最多就是存储`4,294,967,296`个字节=4 * 1024 *1024 * 1024 = 4GB数据！也正是因为这32位地址寻址的限制，系统最多能为一个进程分配`4G`虚拟内存！
 
-
-
-
-
-
-
-
+### 具体子Buffer
 
 #### Buffer内容管理和创建
 
@@ -277,7 +275,7 @@ ByteBuffer buf = ByteBuffer.allocate(1024);
 
 另外一般情况下不能直接`new`具体的`Buffer`类，每个子`Buffer`类都提供了两个静态方法来方便创建`Buffer`对象：`allocate()`和`wrap()`。`allocate()`方法用于分配一个`Buffer`，指定`Buffer`的大小，也就是`Capacity`属性，而`wrap()`方法则是使用现有的数组来创建`Buffer`！
 
-### 具体子Buffer
+新创建出来的`Buffer`，在没有添加任何内容的情况下，其`Position`为`0`，其`Limit`等于`Capacity`，其`Mark`为`-1`！
 
 #### ByteBuffer
 
@@ -455,20 +453,45 @@ public abstract ByteBuffer compact();
 
 ##### slicing操作
 
-子`Buffer`复制，将原`Buffer`的一部分内容复制出来！注意并不会真的复制一块新的空间，而是公用一个底层数组，子Buffer通过设置一个`Offset`偏移量（也就是`arrayOffset`）的形式来得到一个相对坐标
+子`Buffer`复制，将原`Buffer`的一部分内容复制出来！注意并不会真的复制一块新的空间，而是公用一个底层数组，子`Buffer`通过设置一个`Offset`偏移量（也就是`arrayOffset`）的形式来得到一个相对坐标
 
-1. 会以`pos`作为第一个下标（相对下标）
-2. 子`Buffer`默认不带父`Buffer`的`Mark`
-3. 子`Buffer`的`Limit`和`capacity`都等于父`Buffer`的`Limit` - 父`Buffer`的`Position`
-4. 对子`Buffer`的`Put`操作会影响到父`Buffer`，反之如果操作到子`Buffer`和父`Buffer`公用的部分位置则也会受影响！因为子`Buffer`和父`Buffer`共用一个底层数据！
+1. 会以父`Buffer`的`Position`作为第一个下标（相对下标）
+2. 复制内容到一个新的`Buffer`（子`Buffer`），直到遇到父`Buffer`的`Limit`
+3. 子`Buffer`默认不带父`Buffer`的`Mark`
+4. 子`Buffer`的`Limit`和`capacity`都等于（父`Buffer`的`Limit` - 父`Buffer`的`Position`）
+5. 对子`Buffer`的`Put`操作会影响到父`Buffer`，反之如果操作到子`Buffer`和父`Buffer`公用的部分位置则也会受影响！因为子`Buffer`和父`Buffer`共用一个底层数据！
+6. 子`Buffer`的`Offset`属性（即`arrayOffset()`方法的返回值）等于父`Buffer`的`Position`
 
 源代码如下：![image-20231116200510452](README/image-20231116200510452.png)
 
 ![Slicing](README/Slicing.png)
 
-##### ENDIAN
+##### ENDIAN（补）
 
-大端（Big Endian）、小端（Little Endian）
+字节`Buffer`中存储字节会有两种顺序（也叫字节序），即从左到右排和从右到左排（类似于我们读文本从左到右读，而读对联则是从右到左一样），这两种顺序又可以称为：
+
+- 大端（Big Endian）：也就是字节从左到右排，换成专业说法就是高位字节在低位地址，最低字节在高位地址！
+- 小端（Little Endian）：也就是字节从右到左排，换成专业说法就是低位字节在低位地址，高位字节在高位地址！
+
+如我们现在有下面四个字节的内容：`CA FE BA BE`，换成二进制就是：`11001010 11111110 10111010 10111110`，对于一个二进制数，我们一般称左边的位为高位，右边的位为低位，以此类推，如对于`11001010 11111110 10111010 10111110`，`11001010`就是这个二进制数的高`8`位，而`10111110`就是这个二进制数的低`8`位。同样，对于`10111010`，则可以说其高`4`位为`1011`。
+
+由于内存中一个地址就是一个单元格，代表一个字节，因此在`Big Endian`字节序中，字节`CA FE BA BE`将会被进行这样存储：
+
+```assembly
+// 高位在低地址，低位在高地址！				
+				0h          1h           2h            3h    
+00000000h       CA          FE           BA            BE
+```
+
+而在`Little Endian`中，存储则会相反：
+
+```assembly
+// 低位在低地址，高位在高地址！				
+				0h          1h           2h            3h    
+00000000h       BE          BA           FE            CA
+```
+
+字节序之所以如此重要，是因为它和`CPU`架构有关并决定着内存数据存储顺序，`SPARC`、`PowerPC`就是经典的`Big-Endian`架构，而最常见的`x86`架构采用的是相反的`Little-Endian`！
 
 #### CharBuffer
 
@@ -484,19 +507,24 @@ public static CharBuffer wrap(CharSequence csq, int start, int end);
 
 ##### 内容管理
 
-```
+```java
+// 拼接char
 public CharBuffer append(char c);
 public CharBuffer append(CharSequence csq);
 public CharBuffer append(CharSequence csq, int start, int end);
 
+// 定位
 public final char charAt(int index);
 public IntStream chars();
 
+// 直接获取，并且position增加
 public abstract char get();
 public CharBuffer get(char[] dst);
 public CharBuffer get(char[] dst, int offset, int length);
+// 按照数组下标获取
 public abstract char get(int index);
 
+// 相当于获取position
 public final int length();
 
 public abstract CharBuffer put(char c);
@@ -514,41 +542,235 @@ public abstract CharBuffer subSequence(int start, int end);
 
 ##### 操作
 
+```java
+public abstract CharBuffer compact();
+public abstract CharBuffer duplicate();
+public abstract CharBuffer slice();
+
+public final boolean hasArray();
+public final char[] array();
+
+public final int arrayOffset();
+
+public abstract boolean isDirect();
+public abstract CharBuffer asReadOnlyBuffer();
+
+public abstract ByteOrder order();
 ```
-
-```
-
-
 
 #### DoubleBuffer
 
+##### Buffer创建
+
+```java
+public static DoubleBuffer allocate(int capacity);
+public static DoubleBuffer wrap(double[] array);
+public static DoubleBuffer wrap(double[] array, int offset, int length);
+```
+
+##### 内容管理
+
+```java
+public abstract double get();
+public DoubleBuffer get(double[] dst);
+public DoubleBuffer get(double[] dst, int offset, int length);
+
+public abstract double get(int index);
 
 
+public abstract DoubleBuffer put(double d);
+public final DoubleBuffer put(double[] src);
+public DoubleBuffer put(double[] src, int offset, int length);
+public DoubleBuffer put(DoubleBuffer src);
 
+public abstract DoubleBuffer put(int index, double d);
+```
+
+##### 操作
+
+```java
+public final double[] array();
+public final boolean hasArray();
+
+public abstract boolean isDirect();
+public abstract DoubleBuffer asReadOnlyBuffer();
+
+public final int arrayOffset();
+
+public abstract DoubleBuffer slice();
+public abstract DoubleBuffer compact();
+public abstract DoubleBuffer duplicate();
+
+public abstract ByteOrder order();
+```
 
 #### FloatBuffer
 
+##### Buffer创建
+
+```java
+public static FloatBuffer allocate(int capacity);
+public static FloatBuffer wrap(float[] array);
+public static FloatBuffer wrap(float[] array, int offset, int length);
+```
+
+##### 内容管理
+
+```java
+public abstract float get();
+public FloatBuffer get(float[] dst);
+public FloatBuffer get(float[] dst, int offset, int length);
+
+public abstract float get(int index);
 
 
+public abstract FloatBuffer put(float f);
+public final FloatBuffer put(float[] src);
+public FloatBuffer put(float[] src, int offset, int length);
+public FloatBuffer put(FloatBuffer src);
 
+public abstract FloatBuffer put(int index, float f);
+```
+
+##### 操作
+
+```java
+public final float[] array();
+public final int arrayOffset();
+public abstract FloatBuffer asReadOnlyBuffer();
+public abstract FloatBuffer compact();
+public abstract FloatBuffer duplicate();
+public final boolean hasArray();
+public abstract boolean isDirect();
+public abstract ByteOrder order();
+public abstract FloatBuffer slice();
+```
 
 #### IntBuffer
 
+##### Buffer创建
+
+```java
+public static IntBuffer allocate(int capacity);
+public static IntBuffer wrap(int[] array);
+public static IntBuffer wrap(int[] array, int offset, int length);
+```
+
+##### 内容管理
+
+```java
+public abstract int get();
+public IntBuffer get(int[] dst);
+public IntBuffer get(int[] dst, int offset, int length);
+
+public abstract int get(int index);
 
 
+public abstract IntBuffer put(int i);
+public final IntBuffer put(int[] src);
+public IntBuffer put(int[] src, int offset, int length);
+public IntBuffer put(IntBuffer src);
 
+public abstract IntBuffer put(int index, int i);
+```
 
+##### 操作
 
+```java
+public final int[] array();
+public final int arrayOffset();
+public abstract IntBuffer asReadOnlyBuffer();
+public abstract IntBuffer compact();
+public abstract IntBuffer duplicate();
+public final boolean hasArray();
+public abstract boolean isDirect();
+public abstract ByteOrder order();
+public abstract IntBuffer slice();
+```
 
 #### LongBuffer
 
+##### Buffer创建
+
+```java
+public static LongBuffer allocate(int capacity);
+public static LongBuffer wrap(long[] array);
+public static LongBuffer wrap(long[] array, int offset, int length);
+```
+
+##### 内容管理
+
+```java
+public abstract long get();
+public LongBuffer get(long[] dst);
+public LongBuffer get(long[] dst, int offset, int length);
+
+public abstract long get(int index);
 
 
+public abstract LongBuffer put(long l);
+public final LongBuffer put(long[] src);
+public LongBuffer put(long[] src, int offset, int length);
+public LongBuffer put(LongBuffer src);
 
+public abstract LongBuffer put(int index, long l);
+```
+
+##### 操作
+
+```java
+public final long[] array();
+public final int arrayOffset();
+public abstract LongBuffer asReadOnlyBuffer();
+public abstract LongBuffer compact();
+public abstract LongBuffer duplicate();
+public final boolean hasArray();
+public abstract boolean isDirect();
+public abstract ByteOrder order();
+public abstract LongBuffer slice();
+```
 
 #### ShortBuffer
 
+##### Buffer创建
+
+```java
+public static ShortBuffer allocate(int capacity);
+public static ShortBuffer wrap(short[] array);
+public static ShortBuffer wrap(short[] array, int offset, int length);
+```
+
+##### 内容管理
+
+```java
+public abstract short get();
+public ShortBuffer get(short[] dst);
+public ShortBuffer get(short[] dst, int offset, int length);
+
+public abstract short get(int index);
 
 
+public abstract ShortBuffer put(short s);
+public final ShortBuffer put(short[] src);
+public ShortBuffer put(short[] src, int offset, int length);
+public ShortBuffer put(ShortBuffer src);
 
+public abstract ShortBuffer put(int index, short s);
+```
+
+##### 操作
+
+```java
+public final short[] array();
+public final int arrayOffset();
+public abstract ShortBuffer asReadOnlyBuffer();
+public abstract ShortBuffer compact();
+public abstract ShortBuffer duplicate();
+public final boolean hasArray();
+public abstract boolean isDirect();
+public abstract ByteOrder order();
+public abstract ShortBuffer slice();
+```
+
+### 内存文件
 
