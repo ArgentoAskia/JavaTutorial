@@ -376,11 +376,49 @@ public class ClassFileManager2 implements StandardJavaFileManager {
 
 ##### 带注解处理器的编译任务
 
+在调用`getTask()`方法返回的`JavaCompiler.CompilationTask`对象中，可以调用下面的方法来设置注解处理器！
 
+```java
+void setProcessors(Iterable<? extends Processor> processors);
+```
 
+当要编译的代码（`String`对象或者`Java`文件都可以）中包含了注解，并且希望在编译过程中通过注解处理器来处理注解，则你仅需要在`getTask()`和`call()`中间调用该`setProcessors()`并传递注解处理器对象即可！
 
+```java
+final JavaCompiler.CompilationTask task = systemJavaCompiler.getTask
+    (
+    	null, classFileManager,
+        javaFileObjectDiagnosticCollector, 
+    	null, null, javaFileObjects
+	);
 
-#### Tools接口包详解
+// 直接创建注解处理器实例
+DynamicCompilerTaskToStringAnnotationProcessor processor = new DynamicCompilerTaskToStringAnnotationProcessor();
+       
+// 设置注解处理器
+task.setProcessors(Collections.singletonList(dynamicCompilerTaskToStringAnnotationProcessor));
+
+final Boolean call = task.call();  
+```
+
+其中`DynamicCompilerTaskToStringAnnotationProcessor`是一个注解处理器，有关注解处理器的相关内容可以参考[这里]()，简单来说，注解处理器就是`JDK`提供的一种用来处理`SOURCE`级别注解的手段，注解处理器默认情况下只能额外新增文件（代码或者字节码）而不能直接修改标记了注解的源文件，如为一个`JavaBean`生成他的`Builder`类等。注解处理器一般在编译器编译类的时候会运行！
+
+另外`getTask()`方法中，有一个`String[] classes`的参数，该参数指定额外传送给注解处理器进行注解处理的类的名称，可以传递多个类，这样注解处理器除了会分析当前带编译的类之外，还会连带分析传递过来的类上标记的注解！
+
+```java
+final JavaCompiler.CompilationTask task = systemJavaCompiler.getTask
+    (
+    	null, classFileManager,
+        javaFileObjectDiagnosticCollector, 
+    	null, new String[]{"java.util.Date"}, javaFileObjects
+	);
+```
+
+这样当我们调用`call()`方法的时候，编译器会连带分析出`java.util.Date`类上的注解：
+
+![image-20231203235404713](README/image-20231203235404713.png)
+
+#### Tools接口包及其API说明
 
 拿`Java`编译器举例，一般编译代码都需要`javac.exe`，并提供一些参数和编译的对象等，如：
 
@@ -436,9 +474,27 @@ public class ForwardingFileObject<F extends FileObject> implements FileObject {
 
 ##### 工具接口
 
+`Tool`接口
+
+
+
+
+
+#### 编译器API封装
+
 
 
 #### 自定义工具集
+
+
+
+
+
+
+
+
+
+
 
 ### Script包
 
