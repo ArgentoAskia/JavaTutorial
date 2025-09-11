@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="java-web-2-4-filter" />
+        <module name="java-text" />
+        <module name="java-ee-java-message-service" />
+        <module name="java-concurrent" />
+        <module name="java-awt" />
+        <module name="java-sound" />
+        <module name="java-test" />
+        <module name="javax-excel" />
+        <module name="java-annotation" />
+        <module name="java-web-6-4-feature-login-base-tokens" />
+        <module name="java-swing" />
+        <module name="java-web-6-1-feature-login-base-cookies" />
+        <module name="java-nio" />
+        <module name="java-math" />
+        <module name="java-expressions" />
+        <module name="java-web-2-2-annotation-servlet" />
+        <module name="java-xml" />
+        <module name="javax-csv" />
+        <module name="javax-word" />
+        <module name="java-images" />
+        <module name="java-io" />
+        <module name="java-stream" />
+        <module name="core-java-9" />
+        <module name="java-jdbc" />
+        <module name="java-native" />
+        <module name="java-lang" />
+        <module name="java-web-3-1-request-response-object" />
+        <module name="java-web-3-2-cookies-session-object" />
+        <module name="java-collections" />
+        <module name="java-web-2-1-xml-servlet" />
+        <module name="java-json" />
+        <module name="javax-tools" />
+        <module name="java-reflect" />
+        <module name="java-web-3-3-servlet-context-object" />
+        <module name="java-apache-packages" />
+        <module name="java-security" />
+        <module name="java-web-6-3-feature-login-base-json-web-token" />
+        <module name="java-beans" />
+        <module name="java-time" />
+        <module name="javax-toml" />
+        <module name="java-web-6-2-feature-login-base-session" />
+        <module name="java-logger" />
+        <module name="java-web-2-3-context-initialization-servlet" />
+        <module name="java-yml" />
+        <module name="java-ee-mail" />
+        <module name="java-network" />
+        <module name="javax-javafx" />
+        <module name="java-design-patterns" />
+        <module name="java-web-1-1-simple-start" />
+        <module name="java-ee-websocket" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="11">
+      <module name="untitled" target="1.5" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

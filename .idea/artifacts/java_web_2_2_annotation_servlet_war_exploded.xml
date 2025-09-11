@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="java-web-2-2-annotation-servlet:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/java_web_2_2_annotation_servlet_war_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="java-web-2-2-annotation-servlet/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="java-web-2-2-annotation-servlet" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

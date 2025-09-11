@@ -1,0 +1,7 @@
+目录：
+1.simple-start中介绍tomcat如何导入idea、eclipse，以及如何使用tomcat
+2.介绍servlet的三种配置方式、filter、listener
+3.http技术兑现的JavaWeb中的各种技术（request、response、客户端和服务端会话跟踪、servlet全局容器）
+4.学习细节上的标准（Web.xml标准，servlet注解标准等）
+5.学习JSP、JSTL、EL表达式
+6.功能导向型学习（JavaWeb如何实现登录功能、文件下载功能、结合HTTP请求响应来）

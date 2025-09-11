@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>java-project</artifactId>
+        <groupId>cn.argento.askia</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <artifactId>core-java-8</artifactId>
+
+    <properties>
+        <java.version>8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+
+    <modules>
+        <module>java-annotation</module>
+        <module>java-io</module>
+        <module>java-nio</module>
+        <module>java-network</module>
+        <module>java-reflect</module>
+        <module>java-lang</module>
+        <module>java-beans</module>
+        <module>java-math</module>
+        <module>java-security</module>
+        <module>java-jdbc</module>
+        <module>java-time</module>
+        <module>java-logger</module>
+        <module>java-stream</module>
+        <module>java-collections</module>
+        <module>java-text</module>
+        <module>javax-tools</module>
+        <module>java-native</module>
+        <module>java-sound</module>
+        <module>java-test</module>
+        <module>java-concurrent</module>
+        <module>java-expressions</module>
+        <module>java-gui</module>
+        <module>java-file-processing</module>
+        <module>java-images</module>
+    </modules>
+
+
+</project>

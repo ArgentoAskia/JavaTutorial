@@ -1,0 +1,7 @@
+D:\OpenSourceProject\JavaProject\Java-Compiler\src\main\resources\cn\argento\askia\HelloWorld.java:8: 错误: 不是语句
+        1
+        ^
+D:\OpenSourceProject\JavaProject\Java-Compiler\src\main\resources\cn\argento\askia\HelloWorld.java:8: 错误: 需要';'
+        1
+         ^
+2 个错误

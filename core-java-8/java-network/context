@@ -1,0 +1,140 @@
+介绍java.net包下的类和java.nio.channel包下的类
+javax.net下的包和类
+
+
+java.net.*
+
+
+网络接口基础
+InterfaceAddress
+NetworkInterface
+
+NetPermission
+PasswordAuthentication
+Authenticator
+
+ProtocolFamily（接口）
+StandardProtocolFamily
+
+SocketAddress
+
+URLClassLoader(-)
+URI(√)
+URL(√)
+URLDecoder(√)
+URLEncoder(√)
+URLPermission(-)
+
+
+异常
+BindException
+ConnectException
+HttpRetryException
+NoRouteToHostException
+PortUnreachableException
+SocketTimeoutException
+ProtocolException
+UnknownServiceException
+MalformedURLException
+URISyntaxException
+SocketException
+UnknownHostException
+
+
+udp
+DatagramPacket
+DatagramSocket
+MulticastSocket
+DatagramSocketImpl
+DatagramSocketImplFactory（接口）
+
+
+
+
+
+tcp
+ServerSocket
+Socket
+SocketImpl
+SocketImplFactory（接口）
+SocketOption（接口）
+SocketOptions（接口）
+SocketPermission
+StandardSocketOptions
+
+
+
+
+
+应用层协议
+CacheRequest
+CacheResponse
+ContentHandler
+ContentHandlerFactory（接口）
+CookieHandler
+CookieManager
+CookiePolicy（接口）
+CookieStore（接口）
+HttpCookie
+HttpURLConnection
+JarURLConnection
+ResponseCache
+SecureCacheResponse
+URLConnection
+URLStreamHandler
+URLStreamHandlerFactory（接口）
+
+代理
+Proxy
+ProxySelector
+
+
+FileNameMap（接口）
+`FileNameMap` 接口是 Java 中的一个简单接口，它提供了一种在文件名和 MIME 类型字符串之间进行映射的机制。以下是它的详细信息和使用方法：
+
+### 用途
+`FileNameMap` 接口用于将文件名映射到 MIME 类型。它定义了一个方法 `getContentTypeFor(String fileName)`，该方法接受一个文件名作为参数，并返回与该文件名关联的 MIME 类型。这在处理文件上传、下载等场景中非常有用，可以确保文件类型被正确识别和处理。
+
+### 使用方法
+要在 Java 中使用 `FileNameMap` 接口，可以按照以下步骤进行操作：
+
+1. **导入相关的类和接口**：
+   ```java
+   import java.net.FileNameMap;
+   import java.net.URLConnection;
+   ```
+
+2. **创建一个 `FileNameMap` 对象**：
+   ```java
+   FileNameMap fileNameMap = URLConnection.getFileNameMap();
+   ```
+
+3. **使用 `getContentTypeFor` 方法获取文件的 MIME 类型**：
+   ```java
+   String fileName = "example.txt";
+   String contentType = fileNameMap.getContentTypeFor(fileName);
+   System.out.println("MIME类型：" + contentType);
+   ```
+
+### 代码示例
+以下是一个完整的示例代码：
+```java
+import java.net.FileNameMap;
+import java.net.URLConnection;
+
+public class FileNameMapExample {
+    public static void main(String[] args) {
+        FileNameMap fileNameMap = URLConnection.getFileNameMap();
+        String fileName = "example.txt";
+        String contentType = fileNameMap.getContentTypeFor(fileName);
+        System.out.println("MIME类型：" + contentType);
+    }
+}
+```
+在这个例子中，我们使用 `URLConnection.getFileNameMap()` 方法获取默认的 `FileNameMap` 实现，然后调用 `getContentTypeFor` 方法传入文件名，获取与该文件名关联的 MIME 类型。
+
+### 使用场景
+- **文件上传**：在处理文件上传时，根据文件名获取 MIME 类型，以确保上传的文件类型符合要求。
+- **文件类型判断**：在需要根据文件名判断文件类型的应用中，使用 `FileNameMap` 来获取文件的 MIME 类型。
+
+通过使用 `FileNameMap` 接口，可以更灵活地处理文件类型相关的逻辑，提高应用程序的健壮性和用户体验。
