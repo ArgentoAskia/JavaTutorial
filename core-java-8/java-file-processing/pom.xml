@@ -19,6 +19,8 @@
         <module>javax-word</module>
         <module>javax-toml</module>
         <module>javax-csv</module>
+        <module>java-zip</module>
+        <module>java-jar</module>
     </modules>
 
 

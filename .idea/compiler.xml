@@ -17,6 +17,7 @@
         <module name="javax-excel" />
         <module name="java-annotation" />
         <module name="java-web-6-4-feature-login-base-tokens" />
+        <module name="java-rmi" />
         <module name="java-swing" />
         <module name="java-web-6-1-feature-login-base-cookies" />
         <module name="java-nio" />
@@ -25,13 +26,18 @@
         <module name="java-web-2-2-annotation-servlet" />
         <module name="java-xml" />
         <module name="javax-csv" />
+        <module name="java-jar" />
         <module name="javax-word" />
+        <module name="java-javafx" />
+        <module name="java-zip" />
+        <module name="javax-ast" />
         <module name="java-images" />
         <module name="java-io" />
         <module name="java-stream" />
         <module name="core-java-9" />
         <module name="java-jdbc" />
         <module name="java-native" />
+        <module name="java-spi" />
         <module name="java-lang" />
         <module name="java-web-3-1-request-response-object" />
         <module name="java-web-3-2-cookies-session-object" />
@@ -49,6 +55,7 @@
         <module name="javax-toml" />
         <module name="java-web-6-2-feature-login-base-session" />
         <module name="java-logger" />
+        <module name="javax-native" />
         <module name="java-web-2-3-context-initialization-servlet" />
         <module name="java-yml" />
         <module name="java-ee-mail" />

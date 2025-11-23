@@ -21,6 +21,7 @@
         <option value="$PROJECT_DIR$/core-java-8/java-awt/pom.xml" />
         <option value="$PROJECT_DIR$/java-ee-web/java-web-6-3-feature-login-base-jwt/pom.xml" />
         <option value="$PROJECT_DIR$/java-yml/pom.xml" />
+        <option value="$PROJECT_DIR$/javax-ast/pom.xml" />
       </set>
     </option>
   </component>

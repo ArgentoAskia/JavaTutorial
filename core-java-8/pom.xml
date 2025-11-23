@@ -34,7 +34,7 @@
         <module>java-collections</module>
         <module>java-text</module>
         <module>javax-tools</module>
-        <module>java-native</module>
+        <module>javax-native</module>
         <module>java-sound</module>
         <module>java-test</module>
         <module>java-concurrent</module>
@@ -42,6 +42,9 @@
         <module>java-gui</module>
         <module>java-file-processing</module>
         <module>java-images</module>
+        <module>javax-ast</module>
+        <module>java-spi</module>
+        <module>java-rmi</module>
     </modules>
 
 
