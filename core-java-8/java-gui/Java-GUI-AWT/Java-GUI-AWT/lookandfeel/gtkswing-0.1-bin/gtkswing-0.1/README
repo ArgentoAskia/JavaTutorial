@@ -1,0 +1,79 @@
+GTK+ Pluggable look and feel for Java
+-------------------------------------
+
+<IMPORTANT>
+A lot of this PLAF if based on code by
+Sun Microsystems. Please use it only to
+test it and help improve it. I will submit
+the final version to Sun for approval
+and license issues.
+</IMPORTANT>
+
+This is an attempt to make Java Swing applications
+comply to the look and feel of GTK+ (and Gnome).
+
+The PLAF classes are based on the Motif classes
+distributed with Sun's Swing implementation.
+They are however been heavily changed.
+
+Most widgets, like buttons and menus, are complete.
+Some, like the internal frames, are still Motif like,
+because there is no equivalent in GTK+/Gnome.
+Suggestions for their look and feel are welcome.
+
+Please note, that some widgets don't exactly behave
+like their GTK+ analogues, because the basic Swing model
+is different than GTK's.
+
+Furthermore, only the standard GTK theme is implemented,
+support for automatic GTK themes support seems yet to be
+far off.
+The code is not yet tidied up. Useless remains need to
+be removed, naming and coding conventions need to
+be unified.
+
+I appreciate every help I can get to complete the L&F.
+
+There is also an adapted version of the SwingSet demo,
+that automatically uses the GTK L&F.
+
+Installation
+------------
+
+Put the GTK classes in your classpath or (in JDK 1.2.2)
+put the jarred classes into $JDK_HOME/jre/lib/ext.
+
+If you want your applications to use the GTK L&F,
+include this bit of code:
+
+import javax.swing.*
+...
+UIManager.setLookAndFeel("org.gtk.java.swing.plaf.gtk.GtkLookAndFeel");
+...
+
+To enable the GTK L&F automatically, put a file named 
+"swing.properties" in $JDK_HOME/jre/lib with the following
+contents:
+
+swing.defaultlaf=org.gtk.java.swing.plaf.gtk.GtkLookAndFeel
+
+Remember, the GTK classes must be in your classpath.
+Note, that most applications using Swing hardwire the Metal
+look and feel.
+
+Caviats
+-------
+
+- the class "GtkScrollBarUI" only compiles with Jikes.
+
+To Do
+-----
+- implement internal frames
+- tabbed pane still not completely satisfying
+- different component directions buggy
+- split pane does not look perfectly like in GTK
+- implement combo boxes
+- tables and lists not exactly like in GTK
+- there is a problem with the buttons in SwingSet's ProgressBar Tab
+- TreeView is not quite like GTK
+- clean up code
