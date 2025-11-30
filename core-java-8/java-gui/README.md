@@ -198,363 +198,7 @@ public class AwtSets extends Frame {
 
 ![image-20251117144627633](README/image-20251117144627633.png)
 
-// todo
-
-### AWT组件
-
-非常遗憾，因为历史遗留原因，`AWT`并没有提供太多的客户类组件。
-
-下面是整个`AWT`组件继承图：
-
-![image-20230224230940100](README/image-20230224230940101.png)
-
-所有的组件大概能够分四大类：
-
-1. 容器类组件：用于容纳其他客户类组件的组件。
-2. 客户类组件：给用户提供操作的组件。
-3. 菜单类组件：菜单类组件。
-4. 对话框组件：提供一些通用的对话框，如消息框等。
-
-所有的`awt`组件都位于`java.awt.*`下，因此你可以具体参考此包下的类，大概有：
-
-| 容器类组件   | 意义                                       |
-| ------------ | ------------------------------------------ |
-| `Frame`      | 窗口                                       |
-| `Panel`      | 空白的面板，可以在上面绘图、放组件等       |
-| `ScrollPane` | 滚动面板，可以带滚动条，一般配合文本域使用 |
-
-| 客户类组件  | 意义       |
-| ----------- | ---------- |
-| `Button`    | 按钮       |
-| `Canvas`    | 画布组件   |
-| `Checkbox`  | 选择框     |
-| `Choice`    | 下拉列表框 |
-| `Label`     | 标签       |
-| `List`      | 列表框     |
-| `Scrollbar` | 滑块条     |
-| `TextArea`  | 文本域     |
-| `TextField` | 文本框     |
-
-| 菜单类组件         | 意义                                     |
-| ------------------ | ---------------------------------------- |
-| `Menu`             | 菜单列，内部可以容纳`MenuItem`（菜单项） |
-| `MenuItem`         | 菜单项按钮                               |
-| `MenuBar`          | 菜单工具条                               |
-| `MenuShortcut`     | 菜单快捷按键                             |
-| `PopupMenu`        | 右键弹出式菜单                           |
-| `CheckboxMenuItem` | 选择式菜单项                             |
-
-| 对话框类组件 | 意义           |
-| ------------ | -------------- |
-| `Dialog`     | 通用对话框     |
-| `FileDialog` | 文件选择对话框 |
-
-由于`AWT`的组件存在非常多的`API`，这些`API`不熟悉可能会对我们编写界面造成困扰，因此对组件的`API`进行分类非常有必要，好在很多`API`都只是对组件的内部属性进行设置的`Setter`和`Getter`方法，又因为组件之间的继承关系，并且很多组件的属性都是通用的，所以我们根据继承关系来分类`API`来学习即可。
-
-文章将通过提供组件属性的表格的形式来告诉读者组件具有什么属性以及这些属性的作用，读者了解之后可以通过响应的使用`Getter`和`Setter`方法来配置即可。
-
-所有的组件样式的`Demo`可以参考：// todo
-
-在具体介绍各个组件的细节之前，我们有必要先了解两个类，即：`Component`和`MenuComponent`，`AWT`中所有组件都会继承此类，这两个类提供了所有组件的通用属性和方法，因此了解这两个类也有助于我们了解整个`AWT`的体系。
-
-##### Component类
-
-`AWT`所有的组件都继承自`Component`类，该类包含了组件通用属性（`Getter`和`Setter`）和方法，我们忽略掉一些历史遗留的和废弃的属性，整理了下面的一张属性表，包含（`Getter`、`Setter`、`Is`）：
-
-| 组件属性                    | 说明                                                         | 参数说明                                                     | 获取方法                 |
-| --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------ |
-| `AccessibleContext`         | 获取与此组件关联的`accessibecontext`对象。`AccessibleContext`表示所有可访问对象返回的最小信息。该信息包括对象的可访问名称、描述、角色和状态，以及关于其父节点和子节点的信息，位于`javax.accessibility`包中 | 暂时未知具体用途                                             |                          |
-| `AlignmentX`                | 组件与组件之间沿`x`轴的对齐方式（左对齐、居中、右对齐）      | 该值是一个介于`0`和`1`之间的数字，其中`0`表示沿着原点对齐（左对齐），`1`表示离原点最远（右对齐），`0.5`表示居中。<br />`Component`类中定义了相关常量：<br />![image-20240201175421993](README/image-20240201175421993.png)![image-20240201175444781](README/image-20240201175444781.png)![image-20240201175456783](README/image-20240201175456783.png) | `Getter`                 |
-| `AlignmentY`                | 组件与组件之间沿`y`轴的对齐方式（顶边对其、居中、底边对齐）  | 同`AlignmentX`，`Component`类中的常量：<br />![image-20240201175727058](README/image-20240201175727058.png)![image-20240201175743745](README/image-20240201175743745.png)![image-20240201175759921](README/image-20240201175759921.png) | Getter                   |
-| `Background`                | 设置组件背景色                                               | 参数是`java.awt.Color`类型，提供一个颜色，使用`Color`类内置的常量即可！ | Setter<br />Getter       |
-| `BackgroundSet`             | 返回是否为该组件显式设置了背景颜色。如果此方法返回`false`，则表示该组件继承了祖先组件的背景色 | 返回`boolean`类型                                            | Getter                   |
-| `Baseline`                  | 组件基线                                                     | 基线是从组件顶部测量的。 此方法主要用于 `LayoutManager`沿其基线对齐组件。 返回值小于 0 表示此组件没有合理的基线，且 `LayoutManager`不应沿其基线对齐此组件。<br />默认实现返回-1。 支持基线的子类应进行适当重写。 如果返回值>=0，则该组件对于任何>=最小尺寸的尺寸都有有效基线，可使用`getBaselineResizeBehavior`确定基线如何随尺寸变化。 |                          |
-| `BaselineResizeBehavior`    | 组件基线变化行为                                             | 返回一个枚举（参考`Component.BaselineResizeBehavior`），指示组件的基线如何随尺寸变化而变化。 该方法主要用于布局管理器和`GUI` 构建器。<br />默认实现会返回`BaselineResizeBehavior.OTHER`，子类若包含基线参数，需进行适当重写。子类切勿返回空值；若无法计算基线，应返回`BaselineResizeBehavior.OTHER`。<br />调用方应先通过`getBaseline`获取基线值，若返回值≥0则使用本方法。即使getBaseline返回负值，本方法仍可返回非`BaselineResizeBehavior.OTHER`的其他值。 | Getter                   |
-| `Bounds`                    | 指定组件的`x`坐标、`y`坐标、宽度、高度，这四个参数有个统称叫组件矩形（`Rectangle`） | `Rectangle`类型                                              | Getter<br />Setter       |
-| `ColorModel`                | 获取用于在输出设备上显示组件的`ColorModel`实例               |                                                              | Getter                   |
-| `ComponentAt`               | 获取窗口上特定`(x,y)`上的组件。                              | 确定此组件或其直接子组件之一是否包含（x，y）位置，如果是，则返回包含该位置的组件。 此方法只查看一个级别深度。 如果点（x，y）在一个自身具有子组件的子组件内部（子组件嵌套），则不会继续查看子组件树。<br />若子组件被 **遮挡/透明/不可见**，仍会被返回；**Z-Order 最上层**的获胜。<br />若（x，y）坐标点位于组件的边界框内，其定位方法将直接返回该组件；否则返回null。 |                          |
-| `ComponentListeners`        | 返回在此组件上注册的所有`ComponentListener`监听器接口的数组。 | 如果组件没有注册`ComponentListener`，则返回成员数为`0`的数组 | Getter                   |
-| `ComponentOrientation`      | 设置组件内容排列方向，用于对组件或文本的元素排序。例如在复选框中，复选框的位置相对于文本，此属性主要考虑到各国人的阅读习惯，比如国内的阅读主要以从左到右为主，所以文字要从左到右排列，但是一些其他国家阅读文字是从右到左的，因此在这些国家文字是要从右往左排的 | 参数需要提供`ComponentOrientation`常量类：包括`LEFT_TO_RIGHT`、`RIGHT_TO_LEFT`和`UNKNOWN`（让组件自己决定）<br />`ComponentOrientation`类的文档对此属性进行了详细描述，请参考`ComponentOrientation`类的`Api`文档 | Getter<br />Setter       |
-| `Cursor`                    | 设置或获取组件内鼠标指针样式                                 | `Cursor`类型                                                 | Getter<br />Setter       |
-| `CursorSet`                 | 返回是否为该组件显式设置了鼠标指针样式。如果此方法返回`false`，则此组件从祖先继承了鼠标指针样式。 | 返回`boolean`类型                                            | Getter                   |
-| `Displayable`               | 判断组件是否`Displayable`，当且仅当组件有对应的`ComponentPeer`实现（即存在对应组件本地代码）时，此值返回`true`，参考：AWT如何实现跨平台？ | `API`原文：Determines whether this component is displayable. A component is displayable when it is connected to a native screen resource<br />返回`boolean`类型 | Gette                    |
-| `DropTarget`                | 拖放目标，只有容器组件设置了允许拖放的时候才有效，用于接收拖放进组件的各类资源（文本、文件等） | `DropTarget`类型                                             | Setter<br />Getter       |
-| `Enabled`                   | 组件是否可用                                                 | `boolean`                                                    | Setter<br />Getter       |
-| `Focusable`                 | 容器是否可以获取焦点，设置这个值，在焦点轮切的时候（常见是按`Tab`，但可以设置其他键）可以被切换上 | `boolean`                                                    | Setter<br />Getter       |
-| `FocusCycleRootAncestor`    | 返回该组件的焦点遍历循环的焦点循环根容器。每个焦点遍历循环只有一个焦点循环根，每个不是容器的组件只属于一个焦点遍历循环。作为焦点循环根的容器属于两个循环:一个植根于容器本身，另一个植根于容器最近的焦点循环根祖先。对于这样的容器，此方法将返回离容器最近的焦点循环根祖先。 | 返回`Container`类型                                          | `Getter`                 |
-| `FocusListeners`            | 返回在此组件上注册的所有`FocusListener`监听器接口的数组。    | 如果组件没有注册`FocusListener`，则返回成员数为`0`的数组     | `Getter`                 |
-| `FocusOwner`                | 如果此组件是焦点所有者（焦点所有者指代那些接收用户生成的所有`keyeevent`的组件），则返回`true` | 返回`Boolean`类型                                            | `Getter`                 |
-| `FocusTraversalKeysEnabled` | 是否开启焦点切换功能                                         | `boolean`                                                    | Getter<br />Setter       |
-| `Font`                      | 设置或获取字体                                               | `Font`类型                                                   | Getter<br />Setter       |
-| `FontSet`                   | 同各种`XXXSet`一样，用于检测是否显式设置了某些属性！         | 返回`Boolean`类型                                            | `Getter`                 |
-| `Foreground`                | 设置或者获取前景颜色                                         | `Color`类型                                                  | Getter<br />Setter       |
-| `ForegroundSet`             | 同各种`XXXSet`一样，用于检测是否显式设置了某些属性！         | 返回`Boolean`类型                                            | `Getter`                 |
-| `Graphics`                  | 获取该组件的`Graphics`上下文对象，当`displayable`属性为`false`时，无法获取（返回`null`） | 返回`java.awt.Graphics`类型                                  | `Getter`                 |
-| `GraphicsConfiguration`     | 获取与此组件关联的`GraphicsConfiguration`。如果组件没有被分配一个特定的`GraphicsConfiguration`，则返回组件对象的顶层容器的`GraphicsConfiguration`。如果组件已创建，但尚未添加到容器中，则此方法返回`null`。 | 返回`java.awt.GraphicsConfiguration`类型                     | `Getter`                 |
-| `Height`                    | 返回该组件的当前高度。效果和`component.getBounds().height`和`component.getSize().height`一致，但因为不会创建`Dimension`对象所以不会引起任何堆内存分配 | 返回`int`类型                                                | Getter                   |
-| `HierarchyBoundsListeners`  | 返回在此组件上注册的所有`HierarchyBoundsListener`监听器接口的数组。 | 返回`java.awt.event.HierarchyBoundsListener`对象             | Getter                   |
-| `HierarchyListeners`        | 返回在此组件上注册的所有`HierarchyListener`监听器接口的数组。 | 返回`java.awt.event.HierarchyListener`对象                   | `Getter`                 |
-| `IgnoreRepaint`             | 是否忽略窗口重绘，这不会影响`AWT`在软件中生成的绘制事件，除非它们是对操作系统级绘制消息的即时响应。 如果在全屏模式下运行并希望获得更好的性能，或者使用翻页作为缓冲策略，设置该属性会很有用。 | `boolean`类型                                                | Getter<br />Setter       |
-| `InputContext`              |                                                              |                                                              |                          |
-| `InputMethodListeners`      |                                                              |                                                              |                          |
-| `InputMethodRequests`       |                                                              |                                                              |                          |
-| `KeyListeners`              | 返回在此组件上注册的所有`KeyListener`监听器接口的数组。      | 返回`java.awt.event.KeyListener`对象                         | Getter                   |
-| `Lightweight`               | 判断组件是否是轻量级组件，轻量级组件没有`Peer`接口（参考AWT组件跨平台实现小节），`Component`和`Container`的子类，除了在`java.awt`包中定义这些如`Button`或`Scrollbar`属于重量级组件之外，其他都是轻量级的。所有的`Swing`组件都是轻量级的。 | 返回`boolean`                                                | Getter                   |
-| `Locale`                    | 获取或者设置组件`Locale`                                     | `java.util.Locale`                                           | Getter<br />Setter       |
-| `Location`                  | 获取指定组件左上角的点的位置（`x`坐标和`y`坐标）。将相对于父父容器组件的坐标空间。 | `java.awt.Point`                                             | Getter<br />Setter<br /> |
-| `LocationOnScreen`          | 获取指定组件左上角的点的位置（`x`坐标和`y`坐标）。将相对于屏幕的坐标空间。 | `java.awt.Point`                                             | Getter<br />             |
-| `MaximumSize`               | 获取此组件的最大大小                                         | `java.awt.Dimension`                                         | Getter<br />Setter       |
-| `MaximumSizeSet`            |                                                              |                                                              | Getter                   |
-| `MinimumSize`               | 获取此组件的最小大小                                         | `java.awt.Dimension`                                         | Getter<br />Setter       |
-| `MinimumSizeSet`            |                                                              |                                                              |                          |
-| `MouseListeners`            | 返回在此组件上注册的所有`MouseListener`监听器接口的数组。    | 返回`java.awt.event.MouseListener`对象                       | Getter                   |
-| `MouseMotionListeners`      | 返回在此组件上注册的所有`MouseMotionListeners`监听器接口的数组。 |                                                              |                          |
-| `MousePosition`             | 如果鼠标当前在组件内，则返回鼠标指针在该组件坐标中的位置，如果不在组件内，则返回`null` | 返回`java.awt.Point`                                         | Getter                   |
-| `MouseWheelListeners`       | 返回在此组件上注册的所有`MouseWheelListeners`监听器接口的数组。 | 返回`java.awt.event.MouseWheelListener`对象                  | Getter                   |
-| `Name`                      | 设置组件的名称，注意该名称相当于组件的ID一样的存在，而非组件的显示文本！ | String类型                                                   | Getter<br />Setter       |
-| `Opaque`                    | 组件是否不透明（如果getPeer() == null则返回false），重量级组件一般都是不透明的，而轻量级组件（如Swing的组件），则默认都是透明的，因此设置背景颜色时需要设置`Opaque`为`true` | 返回boolean类型                                              | Getter                   |
-| `Parent`                    | 获取组件所在的父容器组件                                     | 返回`java.awt.Container`类型                                 | Getter                   |
-| `PreferredSize`             | 获取或设置组件的首选大小，所谓首选大小指的是组件根据其显示的文本的字体、边框、边距等属性计算出来的大小 | `java.awt.Dimension`                                         | Getter<br />Setter       |
-| `PreferredSizeSet`          |                                                              |                                                              |                          |
-| `PropertyChangeListeners`   | 返回在此组件上注册的所有`PropertyChangeListener`监听器接口的数组。 | 返回`java.awt.event.PropertyChangeListener`对象              | Getter                   |
-| `Showing`                   | 如果当前组件可见，则返回true，否则返回false                  |                                                              |                          |
-| `Size`                      | 以`Dimension`对象的形式返回此组件的大小。                    | `java.awt.Dimension`                                         | Getter<br />Setter       |
-| `Toolkit`                   | 获取此组件的`Toolkit`对象（工具包对象）。请注意，包含组件的框架控制该组件使用哪个工具包。因此，如果组件从一个框架移动到另一个框架，它使用的工具包可能会改变。 | 返回`java.awt.Toolkit`                                       | Getter                   |
-| `TreeLock`                  | 获取用于`AWT`组件树和布局操作的此组件的锁定对象(拥有线程同步监视器的对象) | 返回Object类型                                               | Getter                   |
-| Valid                       | Determines whether this component is valid. A component is valid when it is correctly sized and positioned within its parent container and all its children are also valid. In order to account for peers' size requirements, components are invalidated before they are first shown on the screen. By the time the parent container is fully realized, all its components will be valid. | 返回Boolean类型                                              | Getter                   |
-| `Visible`                   | 确定当父组件可见时此组件是否应该可见。组件最初是可见的，除了顶级组件(如Frame对象)。 | Boolean类型                                                  | Getter<br />Setter       |
-| `Width`                     | 获取组件的宽度                                               | `int`                                                        | Getter                   |
-| `X`                         | 获取组件的x坐标，和`component.getBounds().x`、`component.getLocation().x`一致，但是该属性的获取不会创建`Dimension`对象，不会分配堆内存 | `int`                                                        | Getter                   |
-| `Y`                         | 获取组件的`Y`坐标，参考`X`属性                               | int                                                          | Getter                   |
-
-除了这些属性之外，`Component`类中也包含了相关的事件监听器方法，所谓事件其实就组件的行为触发的事件，比如点击按钮时发生什么，滑动滑块时发生什么等，这些事件方法涉及到`AWT`的事件模型，我们会在后面介绍：
-
-```java
-public synchronized void addComponentListener(ComponentListener l);
-public synchronized void addFocusListener(FocusListener l);
-public void addHierarchyBoundsListener(HierarchyBoundsListener l);
-public void addHierarchyListener(HierarchyListener l);
-public synchronized void addInputMethodListener(InputMethodListener l);
-public synchronized void addKeyListener(KeyListener l);
-public synchronized void addMouseListener(MouseListener l);
-public synchronized void addMouseMotionListener(MouseMotionListener l);
-public synchronized void addMouseWheelListener(MouseWheelListener l);
-public void addPropertyChangeListener(PropertyChangeListener listener);
-public void addPropertyChangeListener(String propertyName,PropertyChangeListener listener);
-public synchronized void removeComponentListener(ComponentListener l);
-public synchronized void removeFocusListener(FocusListener l);
-public void removeHierarchyBoundsListener(HierarchyBoundsListener l);
-public void removeHierarchyListener(HierarchyListener l);
-public synchronized void removeInputMethodListener(InputMethodListener l);
-public synchronized void removeKeyListener(KeyListener l);
-public synchronized void removeMouseListener(MouseListener l);
-public synchronized void removeMouseMotionListener(MouseMotionListener l);
-public synchronized void removeMouseWheelListener(MouseWheelListener l);
-public void removePropertyChangeListener(PropertyChangeListener listener);
-public void removePropertyChangeListener(String propertyName,PropertyChangeListener listener);
-```
-
-
-
-##### MenuComponent类
-
-
-
-#### 容器类组件
-
-
-
-##### Container类
-
-|                                |                                                              |                                                              |                    |
-| ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------ |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-| `ComponentCount`               | 获取此容器内组件的数量。                                     |                                                              | Getter             |
-|                                |                                                              |                                                              | Getter<br />Setter |
-| `Components`                   | 获取此容器中的所有组件。返回`Component[]`类型                |                                                              | `Getter`           |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-| `FocusCycleRoot`               | 设置此容器是否是焦点遍历循环的根。一旦焦点进入遍历循环，它通常不能通过焦点遍历离开它，除非按下向上或向下循环键中的一个。法向遍历仅限于这个容器，以及所有这个容器的后代(不是次焦点循环根的后代)。注意，`FocusTraversalPolicy`可能会改变这些限制。例如，`ContainerOrderFocusTraversalPolicy`支持隐式向下循环遍历。<br />指定此容器的子容器遍历顺序的另一种方法是使用`FocusTraversalPolicyProviders` | boolean                                                      | Setter<br />Getter |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-| `FocusTraversalPolicy`         | 焦点切换的方式，或者说焦点切换策略                           | `FocusTraversalPolicy`类型，提供`FocusTraversalPolicy`的子类：<br />![image-20240201184109005](README/image-20240201184109005.png) | Setter<br />Getter |
-| `FocusTraversalPolicyProvider` | 是否开启设置焦点切换的方式！设置此容器是否用于提供焦点遍历策略。将此属性设置为`true`的容器用于获取焦点遍历策略，而不是最近的焦点循环根祖先 | `boolean`                                                    | Getter<br />Setter |
-| `FocusTraversalPolicySet`      | 返回焦点遍历策略是否已为此容器显式设置。如果此方法返回`false`，则此容器将从祖先继承其焦点遍历策略。 |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-|                                |                                                              |                                                              |                    |
-
-```java
-public int getComponentCount();
-public Component[] getComponents();
-// 上面的方法官方建议在AWT tree lock下调用，即：
-Container container = ...;
-int componentCount = 0;
-synchronized (container.getTreeLock()){
-    componentCount = container.getComponentCount();
-    // ... other codes
-}
-// ... other codes
-```
-
-##### 容器类组件添加删除组件
-
-几乎所有的容器类组件都有如下添加组件的方法：
-
-![image-20230224230315967](README/image-20230224230315967.png)
-
-作为容器类组件，你也可以往其内部添加任意的客户类组件，`Frame`等容器组件内部维护了一个`ArrayList`用来存放组件，这也就是为什么会有`index`参数（也叫`ComponentZOrder`，也有相关的`API`，后面会讲）的原因，容器内组件的前后关系可能会影响最终的渲染效果，越排在前面的组件（`index`越小）越晚进行绘制，因此小`index`的组件最终会覆盖掉大`index`的组件。
-
-```java
-// 将组件放到容器的最后，该组件将会被最先进行绘制
-public Component add(Component comp);
-// 将组件放到容器的最后，该组件将会被最先进行绘制,并且用一个字符串与该组件关联,该方法如今已过时但并没有标记@Deprecated，建议使用public void add(Component comp, Object constraints);
-public Component add(String name, Component comp);
-// 将组件放到容器组件列表的index位置中
-public Component add(Component comp, int index);
-// 上面三个方法返回值都是comp参数本身
-
-// 将指定组件添加到此容器的末尾。同时通知布局管理器使用指定的constraints对象将组件添加到容器的布局中。
-public void add(Component comp, Object constraints);
-// 将指定组件添加到此容器的index位置。同时通知布局管理器使用指定的constraints对象将组件添加到容器的布局中。
-public void add(Component comp, Object constraints, int index);
-
-// 添加弹出菜单
-public void add(PopupMenu popup);
-```
-
-所有的`add()`都是`addImpl()`的简便方法，`addImpl()`本身并不对外公开（`protected`），如果容器内部使用了布局类来管理组件的话，则`addImpl()`实际上会调用布局的`addLayoutComponent`方法来实现添加布局，具体参考容器组件布局章节。
-
-除了添加组件之外，你也可以讲将某个组件从容器组件中删除，`index`是上面提到的组件顺序。也可以使用`removeAll()`删除全部组件。![image-20230227164857941](README/image-20230227164857941.png)
-
-##### Frame
-
-`Frame`代表一个窗口，在`Java`中一个简单的`Frame`展示如下，在这个窗口中，一般会被分成几大块：
-
-![image-20230110160140921](README/image-20230110160140921.png)
-
-一般我们的组件都是在窗口客户区上进行绘画。顶部的标题、图标和最大化最小化关闭按钮共同组成了装饰区（`frame decorations`）。
-
-窗口本身具有很多属性，可以通过`Setter`方法来设置这些属性（当然其中的部分也可以使用`Getter`来获取当前的值），设置了这些属性会让窗口有不同的表现。
-
-这些属性中大部分都有相关的`Setter`、`Getter`，大部分属性都有带`isXXX()`作为状态判别方法，小部分是`areXXX()`开头。
-
-属性参考下表：
-
-| 属性名                  | 类型                                    | 说明                                                         |
-| ----------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| `alwaysOnTop`           | `boolean`                               | 是否总是显示在前端                                           |
-| `autoRequestFocus`      | `boolean`                               | 当窗口被激活的时候是否自动获取焦点                           |
-|                         | `ComponentOrientation`                  | 未知                                                         |
-| `ComponentZOrder`       | 参数1：Component<br />参数2：int：index | 窗口内组件刷新顺序。                                         |
-|                         | `Cursor`                                | 窗口内鼠标样式                                               |
-| `ExtendedState`         | `int`                                   | 窗口状态，如最大化、最小化等等                               |
-| `FocusableWindowState`  |                                         | 窗口是否可以获取焦点，这个方法会根据窗口状态来影响判断       |
-| `FocusTraversalKeys`    |                                         | 焦点切换按键                                                 |
-|                         |                                         |                                                              |
-|                         |                                         |                                                              |
-|                         |                                         |                                                              |
-|                         |                                         | 前景颜色                                                     |
-| `IconImage |IconImages` |                                         | 图标图像（可以设置多个）                                     |
-|                         |                                         |                                                              |
-| `Layout`                |                                         | 客户区组件布局                                               |
-| `Locale`                |                                         | `locale`，多语言支持的时候需要设置这个                       |
-| `Location`              |                                         | 窗口在屏幕中的位置                                           |
-| `LocationByPlatform`    |                                         | 是否由所在的平台来决定窗口位置                               |
-| `LocationRelativeTo`    |                                         | 窗口的父窗口                                                 |
-| `MaximizedBounds`       |                                         | 窗口的最大边界（窗口矩形）                                   |
-| `MaximumSize`           |                                         | 窗口的最大宽高                                               |
-| `MenuBar`               |                                         | 窗口菜单栏                                                   |
-| `MinimumSize`           |                                         | 窗口最小大小                                                 |
-| `ModalExclusionType`    |                                         | 窗口模态排除类型，一般情况下当一个窗口弹出一些信息框，那么那个窗口将会被阻塞，动不了，设置了这个属性，则窗口可能将不会被阻塞。 |
-| `Name`                  |                                         | 组件名称，注意区别与`setTitle()`，`setTitle`是设置标题，而这个是在相当于为窗口设置一个名字，一般用于标记窗口或组件。 |
-| `Opacity`               |                                         | 窗口透明度，值在`0.0f-1.0f`之间，需要注意，设置透明度需要先把窗口装饰区去掉，也就是`setUndecorated(true)` |
-| `PreferredSize`         |                                         | 组件更加偏向的大小，一般在布局的设置中会采用这个，注意设置组件的大小不一定就会起作用，`AWT`会计算组件的大小以更好适应布局情况 |
-| `Resizable`             |                                         | 窗口是否可拉伸                                               |
-| `Shape`                 |                                         | 窗口的形状                                                   |
-| `Size`                  |                                         | 窗口大小                                                     |
-| `State`                 |                                         | 窗口状态                                                     |
-| `Title`                 |                                         | 窗口标题                                                     |
-| `Type`                  |                                         | 窗口类型                                                     |
-| `Undecorated`           |                                         | 是否去除装饰区，当设置`true`则窗口最大化最小化，窗口标题，关闭按钮将被去除。 |
-| `Visible`               |                                         | 窗口可视                                                     |
-
-
-
-// 组件重要属性集
-
-// 事件处理
-
-// 布局集合
-
-##### Panel
-
-`Panel`，也叫面板，是用于存放其他组件的一个容器，一般情况下被用于划分功能相关的组件，调整组件布局等。但不能独立存在，只能被放置在窗口或者其他`Panel`中。
-
-
-
-##### ScrollPane
-
-#### 客户区组件
-
-##### Button
-
-##### Canvas
-
-##### checkbox
-
-##### choice
-
-##### label
-
-##### list
-
-##### scrollbar
-
-##### textarea
-
-##### textfield
-
-#### 菜单类组件
-
-菜单类组件
-
-#### 对话框类组件
-
-#### AWT组件原理
-
-> AWT如何实现跨平台？
-
-
-
-> AWT组件绘制（paintComponent、paint）、重绘（repaint）
-
-10.3.0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// todo 优化
 
 ### AWT容器组件布局
 
@@ -809,19 +453,19 @@ panel.add(button5);
 
 在`GridBagConstaints`类中，定义了一些字段来完成上述的功能，这些字段都是`public`的，开发者可以随时更改其值：
 
-| 字段         | 用途 | 类型 | 参数和备注                           |
-| ------------ | ---- | ---- | ------------------------------------ |
-| `gridx`      |      |      | 默认值：`GridBagConstaints.RELATIVE` |
-| `gridy`      |      |      |                                      |
-| `gridwidth`  |      |      |                                      |
-| `gridheight` |      |      |                                      |
-| `weightx`    |      |      |                                      |
-| `weighty`    |      |      |                                      |
-| `anchor`     |      |      |                                      |
-| `fill`       |      |      |                                      |
-| `insets`     |      |      |                                      |
-| `ipadx`      |      |      |                                      |
-| `ipady`      |      |      |                                      |
+| 字段         | 用途                                                         | 类型  | 参数和备注                           |
+| ------------ | ------------------------------------------------------------ | ----- | ------------------------------------ |
+| `gridx`      | 指定组件在网格中的起始列位置（注意是第几列，从0开始）        | `int` | 默认值：`GridBagConstaints.RELATIVE` |
+| `gridy`      | 指定组件在网格中的起始行位置（注意是第几行，从0开始）        | `int` |                                      |
+| `gridwidth`  | 指定组件跨越的列数。默认值为`1`（即一个组件占用多少列）      |       |                                      |
+| `gridheight` | 指定组件跨越的行数。默认值为`1`（即一个组件占用多少行）      |       |                                      |
+| `weightx`    | 指定组件在网格中水平方向上的权重，用于控制组件在网格中如何分配额外空间 |       |                                      |
+| `weighty`    | 指定组件在网格中垂直方向上的权重，用于控制组件在网格中如何分配额外空间 |       |                                      |
+| `anchor`     | 指定组件在其网格单元中的锚点位置。                           |       |                                      |
+| `fill`       | 指定组件是否应该填充其网格单元。                             |       |                                      |
+| `insets`     | 指定组件周围的边距。（外边距，相当于前端的`margin`）         |       |                                      |
+| `ipadx`      | 指定组件水平方向上的内部填充。（左右内边距，相当于前端的`padding-left`和`padding-right`） |       |                                      |
+| `ipady`      | 指定组件垂直方向上的内部填充。（内边距，相当于前端的`padding-top`和`padding-bottom`） |       |                                      |
 
 另外该类除了字段之外，还定义了很多常量来辅助设计，该类除了构造器和`Object`继承的方法之外（包括`clone`），没有多余的方法：
 
@@ -874,15 +518,19 @@ public static final int VERTICAL = 3;
 
 在使用`GridBagLayout`的过程中，要注意：
 
-1. 使用绝对`gridx`和`gridy`时，比如当我们指定第一个组件`gridx=0`，第二个组件`gridx=2`时，其实际排列看起来和设置第二个组件`gridx=1`无差别，这是因为我们并没有往`gridx=1`的格子放入任何东西，默认情况下，`gridx=1`的格子宽度会是`0`，参考下图的解释，`gridy`同理。解决方法是使用`gridx=RELATIVE(或者2) + anchor=EAST + gridwidth=2`实现这种布局![image-20240725020241305](README/image-20240725020241305.png)
+1. 使用绝对`gridx`和`gridy`时，比如当我们指定第一个组件`gridx=0`，第二个组件`gridx=2`时，其实际排列看起来和设置第二个组件`gridx=1`无差别，这是因为我们并没有往`gridx=1`的格子放入任何东西，默认情况下，`gridx=1`的格子宽度会是`0`，参考下图的解释，`gridy`同理。解决方法是使用`gridx=RELATIVE(或者2) + anchor=EAST + gridwidth=2`实现这种布局：
+
+    ![image-20240725020241305](README/image-20240725020241305.png)
 
 2. 和`GridLayout`一样，网格和网格之间默认是紧挨着的（组件和组件之间一点空隙都没有），如果希望组件之间留一些空隙，请设置`Insert`属性（外边距）
+
 3. 每个网格的具体大小是由`GridBagConstants`的`gridWidth`和`gridheight`以及组件决定的，同时受外边距等的影响，比如当前窗口的客户区是`100px`，客户区一行设置了3个组件，他们的`gridWidth`比例分别是`4:2:4`，则每个格子的宽度就是`10px`，高度同理即可
+
 4. `GridBagConstants`的`API`和`GridBagLayout`的`API`中建议当设置了第一个组件的`gridx`和`gridy`（一般都是`0`，毕竟是第一个组件）之后其他组件的`gridx`和`gridy`都使用常量`RELATIVE`。建议一行和一列的最后一个组件的`gridheight`和`gridWidth`使用`REMAINDER`常量（原因也很简单，使用绝对的`gridx`、`gridy`、`gridheight`和`gridWidth`，你往往需要事先确定好所有组件的布局，交由`AWT`来设计则无需考虑太多，但这种方式实际上也存在一定的风险，太过依赖`REMAINDER`和`RELATIVE`很有可能会得到预期之外的布局）
 
 设计`GridBagLayout`布局之所以如此难，是因为其网格和组件不再像`GridLayout`一样完全对等了，需要开发者在设计组件排列的同时还要考虑网格的情况。
 
-一种可用的方法是事先在`GUI`绘制软件或者在纸上先确定各个组件的布局，然后在进行细分和编码即可，我们这里通过设计一个简单的界面为例，来说明如何正确使用`GridBagLayout`：
+一种可用的方法是事先在`GUI`绘制软件或者在纸上先确定各个组件的布局，然后在进行细分和编码即可（`Core Java`的作者推荐的方式），我们这里通过设计一个简单的界面为例，来说明如何正确使用`GridBagLayout`：
 
 1. 第一步永远都是想清楚自己想要画出怎样的界面，这一步是核心，搞清楚界面需求，比如我们这里要设计的界面如下图，这是一个非常简单的界面，包含了两个按钮，两个列表框：![image-20240725023814219](README/image-20240725023814219.png)
 2. 决定好界面的情况之后，就可以开始考虑各个组件的`gridx`、`gridy`、`gridWidth`、`gridHeight`了。我们套用网格布局的网格图，考虑这个布局一行有多少个网格，一列有多少个网格，这个需要看个人习惯了（实际上随便就行，主要是为了定位组件用），笔者一般会采用`10`、`15`这些比较好处理的数字，我们这里就采用`10`，即一行有`10`个网格，一列有`10`个网格，决定了之后我们就可以得到下面的一张`10x10`的网格图（有点不规范，但大体是这样了）![image-20240725025139159](README/image-20240725025139159.png)
@@ -902,6 +550,397 @@ public void add(Component comp, Object constraints);
 // 基本的使用可以参考：
 
 ```
+
+
+
+
+
+### AWT组件
+
+非常遗憾，因为历史遗留原因，`AWT`并没有提供太多的客户类组件。
+
+下面是整个`AWT`组件继承图：
+
+![image-20230224230940100](README/image-20230224230940101.png)
+
+所有的组件大概能够分四大类：
+
+1. 容器类组件：用于容纳其他客户类组件的组件。
+2. 客户类组件：给用户提供操作的组件。
+3. 菜单类组件：菜单类组件。
+4. 对话框组件：提供一些通用的对话框，如消息框等。
+
+所有的`awt`组件都位于`java.awt.*`下，因此你可以具体参考此包下的类，大概有：
+
+| 容器类组件   | 意义                                       |
+| ------------ | ------------------------------------------ |
+| `Frame`      | 窗口                                       |
+| `Panel`      | 空白的面板，可以在上面绘图、放组件等       |
+| `ScrollPane` | 滚动面板，可以带滚动条，一般配合文本域使用 |
+
+| 客户类组件  | 意义       |
+| ----------- | ---------- |
+| `Button`    | 按钮       |
+| `Canvas`    | 画布组件   |
+| `Checkbox`  | 选择框     |
+| `Choice`    | 下拉列表框 |
+| `Label`     | 标签       |
+| `List`      | 列表框     |
+| `Scrollbar` | 滑块条     |
+| `TextArea`  | 文本域     |
+| `TextField` | 文本框     |
+
+| 菜单类组件         | 意义                                     |
+| ------------------ | ---------------------------------------- |
+| `Menu`             | 菜单列，内部可以容纳`MenuItem`（菜单项） |
+| `MenuItem`         | 菜单项按钮                               |
+| `MenuBar`          | 菜单工具条                               |
+| `MenuShortcut`     | 菜单快捷按键                             |
+| `PopupMenu`        | 右键弹出式菜单                           |
+| `CheckboxMenuItem` | 选择式菜单项                             |
+
+| 对话框类组件 | 意义           |
+| ------------ | -------------- |
+| `Dialog`     | 通用对话框     |
+| `FileDialog` | 文件选择对话框 |
+
+由于`AWT`的组件存在非常多的`API`，这些`API`不熟悉可能会对我们编写界面造成困扰，因此对组件的`API`进行分类非常有必要，好在很多`API`都只是对组件的内部属性进行设置的`Setter`和`Getter`方法，又因为组件之间的继承关系，并且很多组件的属性都是通用的，所以我们根据继承关系来分类`API`来学习即可。
+
+文章将通过提供组件属性的表格的形式来告诉读者组件具有什么属性以及这些属性的作用，读者了解之后可以通过响应的使用`Getter`和`Setter`方法来配置即可。
+
+所有的组件样式的`Demo`可以参考：// todo
+
+在具体介绍各个组件的细节之前，我们有必要先了解两个类，即：`Component`和`MenuComponent`，`AWT`中所有组件都会继承此类，这两个类提供了所有组件的通用属性和方法，因此了解这两个类也有助于我们了解整个`AWT`的体系。
+
+#### Component类
+
+`AWT`所有的组件都继承自`Component`类，该类包含了组件通用属性（`Getter`和`Setter`）和方法，我们忽略掉一些历史遗留的和废弃的属性，整理了下面的一张属性表，包含（`Getter`、`Setter`、`Is`）：
+
+| 组件属性                    | 说明                                                         | 参数说明                                                     | 获取方法           |
+| --------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------ |
+| `AccessibleContext`         | 获取与此组件关联的`accessibecontext`对象。`AccessibleContext`表示所有可访问对象返回的最小信息。该信息包括对象的可访问名称、描述、角色和状态，以及关于其父节点和子节点的信息，位于`javax.accessibility`包中 | `AWT`组件支持无障碍辅助使用接入功能，AWT的组件使用这个`API`允许辅助技术（如屏幕阅读器、语音识别软件等）与`Java`应用程序进行交互。 | `Getter` |
+| `AlignmentX`                | 组件与组件之间沿`x`轴的对齐方式（左对齐、居中、右对齐）      | 该值是一个介于`0`和`1`之间的数字，其中`0`表示沿着原点对齐（左对齐），`1`表示离原点最远（右对齐），`0.5`表示居中。<br />`Component`类中定义了相关常量：<br />![image-20240201175421993](README/image-20240201175421993.png)![image-20240201175444781](README/image-20240201175444781.png)![image-20240201175456783](README/image-20240201175456783.png) | `Getter`           |
+| `AlignmentY`                | 组件与组件之间沿`y`轴的对齐方式（顶边对其、居中、底边对齐）  | 同`AlignmentX`，`Component`类中的常量：<br />![image-20240201175727058](README/image-20240201175727058.png)![image-20240201175743745](README/image-20240201175743745.png)![image-20240201175759921](README/image-20240201175759921.png) | `Getter`     |
+| `Background`                | 设置组件背景色                                               | 参数是`java.awt.Color`类型，提供一个颜色，使用`Color`类内置的常量即可！ | `Setter`<br />`Getter` |
+| `Baseline`                  | 组件基线                                                     | 基线是从组件顶部测量的。 此方法主要用于 `LayoutManager`沿其基线对齐组件。 返回值小于 0 表示此组件没有合理的基线，且 `LayoutManager`不应沿其基线对齐此组件。<br />默认实现返回-1。 支持基线的子类应进行适当重写。 如果返回值>=0，则该组件对于任何>=最小尺寸的尺寸都有有效基线，可使用`getBaselineResizeBehavior`确定基线如何随尺寸变化。 | `Getter` |
+| `BaselineResizeBehavior`    | 组件基线变化行为                                             | 返回一个枚举（参考`Component.BaselineResizeBehavior`），指示组件的基线如何随尺寸变化而变化。 该方法主要用于布局管理器和`GUI` 构建器。<br />默认实现会返回`BaselineResizeBehavior.OTHER`，子类若包含基线参数，需进行适当重写。子类切勿返回空值；若无法计算基线，应返回`BaselineResizeBehavior.OTHER`。<br />调用方应先通过`getBaseline`获取基线值，若返回值≥0则使用本方法。即使getBaseline返回负值，本方法仍可返回非`BaselineResizeBehavior.OTHER`的其他值。 | `Getter`           |
+| `Bounds`                    | 指定组件的`x`坐标、`y`坐标、宽度、高度，这四个参数有个统称叫组件矩形（`Rectangle`） | `Rectangle`类型                                              | `Getter`<br />`Setter` |
+| `ColorModel`                | 获取用于在输出设备上显示组件的`ColorModel`实例               |                                                              | `Getter`           |
+| `ComponentAt`               | 获取窗口上特定`(x,y)`上的组件。                              | 确定此组件或其直接子组件之一是否包含（x，y）位置，如果是，则返回包含该位置的组件。 此方法只查看一个级别深度。 如果点（x，y）在一个自身具有子组件的子组件内部（子组件嵌套），则不会继续查看子组件树。<br />若子组件被 **遮挡/透明/不可见**，仍会被返回；**Z-Order 最上层**的获胜。<br />若（x，y）坐标点位于组件的边界框内，其定位方法将直接返回该组件；否则返回null。 | `Getter` |
+| `ComponentListeners`        | 返回在此组件上注册的所有`ComponentListener`监听器接口的数组。 | 如果组件没有注册`ComponentListener`，则返回成员数为`0`的数组 | `Getter`           |
+| `ComponentOrientation`      | 设置组件内容排列方向，用于对组件或文本的元素排序。例如在复选框中，复选框的位置相对于文本，此属性主要考虑到各国人的阅读习惯，比如国内的阅读主要以从左到右为主，所以文字要从左到右排列，但是一些其他国家阅读文字是从右到左的，因此在这些国家文字是要从右往左排的 | 参数需要提供`ComponentOrientation`常量类：包括`LEFT_TO_RIGHT`、`RIGHT_TO_LEFT`和`UNKNOWN`（让组件自己决定）<br />`ComponentOrientation`类的文档对此属性进行了详细描述，请参考`ComponentOrientation`类的`Api`文档 | `Getter`<br />`Setter` |
+| `Cursor`                    | 设置或获取组件内鼠标指针样式                                 | `Cursor`类型                                                 | `Getter`<br />`Setter` |
+| `DropTarget`                | 拖放目标，只有容器组件设置了允许拖放的时候才有效，用于接收拖放进组件的各类资源（文本、文件等） | `DropTarget`类型                                             | `Setter`<br />`Getter` |
+| `FocusCycleRootAncestor`    | 返回该组件的焦点遍历循环的焦点循环根容器。每个焦点遍历循环只有一个焦点循环根，每个不是容器的组件只属于一个焦点遍历循环。作为焦点循环根的容器属于两个循环:一个植根于容器本身，另一个植根于容器最近的焦点循环根祖先。对于这样的容器，此方法将返回离容器最近的焦点循环根祖先。 | 返回`Container`类型                                          | `Getter`           |
+| `FocusListeners`            | 返回在此组件上注册的所有`FocusListener`监听器接口的数组。    | 如果组件没有注册`FocusListener`，则返回成员数为`0`的数组     | `Getter`           |
+| `FocusTraversalKeys`        |                                                              |                                                              | `Getter`           |
+| `FocusTraversalKeysEnabled` | 是否开启焦点切换功能                                         | `boolean`                                                    | `Getter`<br />`Setter` |
+| `Font`                      | 设置或获取字体                                               | `Font`类型                                                   | `Getter`<br />`Setter` |
+| `FontMetrics`               |                                                              |                                                              | `Getter`           |
+| `Foreground`                | 设置或者获取前景颜色                                         | `Color`类型                                                  | `Getter`<br />`Setter`   |
+| `Graphics`                  | 获取该组件的`Graphics`上下文对象，当`displayable`属性为`false`时，无法获取（返回`null`） | 返回`java.awt.Graphics`类型                                  | `Getter`                 |
+| `GraphicsConfiguration` | 获取与此组件关联的`GraphicsConfiguration`。如果组件没有被分配一个特定的`GraphicsConfiguration`，则返回组件对象的顶层容器的`GraphicsConfiguration`。如果组件已创建，但尚未添加到容器中，则此方法返回`null`。 | 返回`java.awt.GraphicsConfiguration`类型 | `Getter` |
+| `Height`                    | 返回该组件的当前高度。效果和`component.getBounds().height`和`component.getSize().height`一致，但因为不会创建`Dimension`对象所以不会引起任何堆内存分配 | 返回`int`类型                                                | `Getter`                 |
+| `HierarchyBoundsListeners`  | 返回在此组件上注册的所有`HierarchyBoundsListener`监听器接口的数组。 | 返回`java.awt.event.HierarchyBoundsListener`对象             | `Getter`                 |
+| `HierarchyListeners`        | 返回在此组件上注册的所有`HierarchyListener`监听器接口的数组。 | 返回`java.awt.event.HierarchyListener`对象                   | `Getter`                 |
+| `IgnoreRepaint`             | 是否忽略窗口重绘，这不会影响`AWT`在软件中生成的绘制事件，除非它们是对操作系统级绘制消息的即时响应。 如果在全屏模式下运行并希望获得更好的性能，或者使用翻页作为缓冲策略，设置该属性会很有用。 | `boolean`类型                                                | `Getter`<br />`Setter`   |
+| `InputContext`              |                                                              |                                                              | `Getter` |
+| `InputMethodListeners`      |                                                              |                                                              | `Getter` |
+| `InputMethodRequests`       |                                                              |                                                              | `Getter` |
+| `KeyListeners`              | 返回在此组件上注册的所有`KeyListener`监听器接口的数组。      | 返回`java.awt.event.KeyListener`对象                         | `Getter`                 |
+| `Listeners` |  |  | `Getter` |
+| `Locale`                    | 获取或者设置组件`Locale`                                     | `java.util.Locale`                                           | `Getter`<br />`Setter`   |
+| `Location`                  | 获取指定组件左上角的点的位置（`x`坐标和`y`坐标）。将相对于父父容器组件的坐标空间。 | `java.awt.Point`                                             | `Getter`<br />`Setter`<br /> |
+| `LocationOnScreen`          | 获取指定组件左上角的点的位置（`x`坐标和`y`坐标）。将相对于屏幕的坐标空间。 | `java.awt.Point`                                             | `Getter`<br />           |
+| `MaximumSize`               | 获取此组件的最大大小                                         | `java.awt.Dimension`                                         | `Getter`<br />`Setter`   |
+| `MinimumSize`               | 获取此组件的最小大小                                         | `java.awt.Dimension`                                         | `Getter`<br />`Setter`   |
+| `MouseListeners`            | 返回在此组件上注册的所有`MouseListener`监听器接口的数组。    | 返回`java.awt.event.MouseListener`对象                       | `Getter`                 |
+| `MouseMotionListeners`      | 返回在此组件上注册的所有`MouseMotionListeners`监听器接口的数组。 |                                                              | `Getter` |
+| `MousePosition`             | 如果鼠标当前在组件内，则返回鼠标指针在该组件坐标中的位置，如果不在组件内，则返回`null` | 返回`java.awt.Point`                                         | `Getter`                 |
+| `MouseWheelListeners`       | 返回在此组件上注册的所有`MouseWheelListeners`监听器接口的数组。 | 返回`java.awt.event.MouseWheelListener`对象                  | `Getter`                 |
+| `Name`                      | 设置组件的名称，注意该名称相当于组件的ID一样的存在，而非组件的显示文本！ | String类型                                                   | `Getter`<br />`Setter`   |
+| `Parent`                    | 获取组件所在的父容器组件                                     | 返回`java.awt.Container`类型                                 | `Getter`                 |
+| `Peer` |  |  |  |
+| `PreferredSize`             | 获取或设置组件的首选大小，所谓首选大小指的是组件根据其显示的文本的字体、边框、边距等属性计算出来的大小 | `java.awt.Dimension`                                         | `Getter`<br />`Setter`   |
+| `PropertyChangeListeners`   | 返回在此组件上注册的所有`PropertyChangeListener`监听器接口的数组。 | 返回`java.awt.event.PropertyChangeListener`对象              | `Getter`                 |
+| `Size`                      | 以`Dimension`对象的形式返回此组件的大小。                    | `java.awt.Dimension`                                         | `Getter`<br />`Setter`   |
+| `Toolkit`                   | 获取此组件的`Toolkit`对象（工具包对象）。请注意，包含组件的框架控制该组件使用哪个工具包。因此，如果组件从一个框架移动到另一个框架，它使用的工具包可能会改变。 | 返回`java.awt.Toolkit`                                       | `Getter`                 |
+| `TreeLock`                  | 获取用于`AWT`组件树和布局操作的此组件的锁定对象(拥有线程同步监视器的对象) | 返回Object类型                                               | `Getter`                 |
+| `Width`                     | 获取组件的宽度                                               | `int`                                                        | `Getter`                 |
+| `X`                         | 获取组件的x坐标，和`component.getBounds().x`、`component.getLocation().x`一致，但是该属性的获取不会创建`Dimension`对象，不会分配堆内存 | `int`                                                        | `Getter`                 |
+| `Y`                         | 获取组件的`Y`坐标，参考`X`属性                               | int                                                          | `Getter`                 |
+| `BackgroundSet`             | 返回是否为该组件显式设置了背景颜色。如果此方法返回`false`，则表示该组件继承了祖先组件的背景色 | 返回`boolean`类型                                            | `Is`          |
+| `CursorSet`                 | 返回是否为该组件显式设置了鼠标指针样式。如果此方法返回`false`，则此组件从祖先继承了鼠标指针样式。 | 返回`boolean`类型                                            | `Is`         |
+| `Displayable`               | 判断组件是否`Displayable`，当且仅当组件有对应的`ComponentPeer`实现（即存在对应组件本地代码）时，此值返回`true`，参考：AWT如何实现跨平台？ | `API`原文：Determines whether this component is displayable. A component is displayable when it is connected to a native screen resource<br />返回`boolean`类型 | `Is`    |
+| `DoubleBuffered` |  |  | `Is` |
+| `Enabled`                   | 组件是否可用                                                 | `boolean`                                                    | `Setter`<br />`Is` |
+| `Focusable`                 | 容器是否可以获取焦点，设置这个值，在焦点轮切的时候（常见是按`Tab`，但可以设置其他键）可以被切换上 | `boolean`                                                    | `Setter`<br />`Is` |
+| `FocusCycleRoot` |  |  |  |
+| `FocusOwner`                | 如果此组件是焦点所有者（焦点所有者指代那些接收用户生成的所有`keyeevent`的组件），则返回`true` | 返回`Boolean`类型                                            | `Is`         |
+| `FontSet`                   | 同各种`XXXSet`一样，用于检测是否显式设置了某些属性！         | 返回`Boolean`类型                                            | `Is`               |
+| `ForegroundSet`             | 同各种`XXXSet`一样，用于检测是否显式设置了某些属性！         | 返回`Boolean`类型                                            | `Is`               |
+| `Lightweight`               | 判断组件是否是轻量级组件，轻量级组件没有`Peer`接口（参考AWT组件跨平台实现小节），`Component`和`Container`的子类，除了在`java.awt`包中定义这些如`Button`或`Scrollbar`属于重量级组件之外，其他都是轻量级的。所有的`Swing`组件都是轻量级的。 | 返回`boolean`                                                | `Is`               |
+| `MaximumSizeSet`            |                                                              |                                                              | `Is`               |
+| `MinimumSizeSet`            |                                                              |                                                              | `Is` |
+| `Opaque`                    | 组件是否不透明（如果getPeer() == null则返回false），重量级组件一般都是不透明的，而轻量级组件（如Swing的组件），则默认都是透明的，因此设置背景颜色时需要设置`Opaque`为`true` | 返回boolean类型                                              | `Is`               |
+| `PreferredSizeSet`          |                                                              |                                                              | `Is` |
+| `Showing`                   | 如果当前组件可见，则返回true，否则返回false                  |                                                              | `Is` |
+| `Valid`                     | Determines whether this component is valid. A component is valid when it is correctly sized and positioned within its parent container and all its children are also valid. In order to account for peers' size requirements, components are invalidated before they are first shown on the screen. By the time the parent container is fully realized, all its components will be valid. | 返回Boolean类型                                              | `Is`               |
+| `Visible`                   | 确定当父组件可见时此组件是否应该可见。组件最初是可见的，除了顶级组件(如Frame对象)。 | Boolean类型                                                  | `Is`<br />`Setter` |
+
+除了这些属性之外，`Component`类中也包含了相关的事件监听器方法，所谓事件其实就组件的行为触发的事件，比如点击按钮时发生什么，滑动滑块时发生什么等，这些事件方法涉及到`AWT`的事件模型，我们会在后面介绍：
+
+```java
+public synchronized void addComponentListener(ComponentListener l);
+public synchronized void addFocusListener(FocusListener l);
+public void addHierarchyBoundsListener(HierarchyBoundsListener l);
+public void addHierarchyListener(HierarchyListener l);
+public synchronized void addInputMethodListener(InputMethodListener l);
+public synchronized void addKeyListener(KeyListener l);
+public synchronized void addMouseListener(MouseListener l);
+public synchronized void addMouseMotionListener(MouseMotionListener l);
+public synchronized void addMouseWheelListener(MouseWheelListener l);
+public void addPropertyChangeListener(PropertyChangeListener listener);
+public void addPropertyChangeListener(String propertyName,PropertyChangeListener listener);
+public synchronized void removeComponentListener(ComponentListener l);
+public synchronized void removeFocusListener(FocusListener l);
+public void removeHierarchyBoundsListener(HierarchyBoundsListener l);
+public void removeHierarchyListener(HierarchyListener l);
+public synchronized void removeInputMethodListener(InputMethodListener l);
+public synchronized void removeKeyListener(KeyListener l);
+public synchronized void removeMouseListener(MouseListener l);
+public synchronized void removeMouseMotionListener(MouseMotionListener l);
+public synchronized void removeMouseWheelListener(MouseWheelListener l);
+public void removePropertyChangeListener(PropertyChangeListener listener);
+public void removePropertyChangeListener(String propertyName,PropertyChangeListener listener);
+```
+
+组件通用功能中将会介绍上面这些属性的使用。
+
+#### MenuComponent类
+
+抽象类`MenuComponent`是所有菜单相关组件的超类。类似于`AWT`组件的抽象超类`Component`一样。菜单组件接收并处理`AWT`事件，就像组件通过`processEvent`方法一样。菜单组件的属性表和方法不多：
+
+| 组件属性            | 说明 | 参数类型 | 获取方法               |
+| ------------------- | ---- | -------- | ---------------------- |
+| `AccessibleContext` |      |          | `Getter`               |
+| `Font`              |      |          | `Getter`<br />`Setter` |
+| `Name`              |      |          | `Getter`<br />`Setter` |
+| `Parent`            |      |          | `Getter`               |
+| `Peer`              |      |          | `Getter`               |
+
+#### 组件通用功能
+
+##### 组件对齐方式（AlignmentXY）
+
+
+
+#### 容器类组件
+
+我们先介绍所有容器类组件的层级类、类关系、功能以及相关属性列表，在最后此小节的最后，我们才介绍容器类组件的核心使用方式！因此前面的内容仅作工具内容方便参考，建议直接观看后面的小节。
+
+##### Container类
+
+由于`Container`类直接继承自`Component`类，因此`Component`类中的属性我们不再复述，只记录`Container`类独有的属性
+
+| 属性                           | 描述                                                         | 类型                                                         | 获取方式               |
+| ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------- |
+| `Component`                    | 获取容器内第n个组件                                          |                                                              | `Getter`               |
+| `ComponentCount`               | 获取此容器内组件的数量。                                     |                                                              | `Getter`               |
+| `Components`                   | 获取此容器中的所有组件。返回`Component[]`类型                |                                                              | `Getter`               |
+| `ComponentZOrder`              |                                                              |                                                              | `Getter`<br />`Setter` |
+| `ContainerListeners`           |                                                              |                                                              | `Getter`               |
+| `FocusTraversalPolicy`         |                                                              |                                                              | `Getter`               |
+| `Insets`                       |                                                              |                                                              | `Getter`               |
+| `Layout`                       |                                                              |                                                              | `Getter`<br />`Setter` |
+| `Listeners`                    |                                                              |                                                              | `Getter`               |
+| `MousePosition`                |                                                              |                                                              | `Getter`               |
+| `AncestorOf`                   |                                                              |                                                              | `Is`                   |
+| `FocusCycleRoot`               | 设置此容器是否是焦点遍历循环的根。一旦焦点进入遍历循环，它通常不能通过焦点遍历离开它，除非按下向上或向下循环键中的一个。法向遍历仅限于这个容器，以及所有这个容器的后代(不是次焦点循环根的后代)。注意，`FocusTraversalPolicy`可能会改变这些限制。例如，`ContainerOrderFocusTraversalPolicy`支持隐式向下循环遍历。<br />指定此容器的子容器遍历顺序的另一种方法是使用`FocusTraversalPolicyProviders` | `boolean`                                                    | `Setter`<br />`Is`     |
+| `FocusTraversalPolicy`         |                                                              |                                                              | `Setter`               |
+| `FocusTraversalPolicyProvider` |                                                              |                                                              | `Setter`<br />`Is`     |
+| `FocusTraversalPolicySet`      |                                                              |                                                              |                        |
+| `ValidateRoot`                 |                                                              |                                                              |                        |
+| `FocusTraversalPolicy`         | 焦点切换的方式，或者说焦点切换策略                           | `FocusTraversalPolicy`类型，提供`FocusTraversalPolicy`的子类：<br />![image-20240201184109005](README/image-20240201184109005.png) | Setter<br />Getter     |
+| `FocusTraversalPolicyProvider` | 是否开启设置焦点切换的方式！设置此容器是否用于提供焦点遍历策略。将此属性设置为`true`的容器用于获取焦点遍历策略，而不是最近的焦点循环根祖先 | `boolean`                                                    | Getter<br />Setter     |
+| `FocusTraversalPolicySet`      | 返回焦点遍历策略是否已为此容器显式设置。如果此方法返回`false`，则此容器将从祖先继承其焦点遍历策略。 |                                                              |                        |
+|                                |                                                              |                                                              |                        |
+|                                |                                                              |                                                              |                        |
+|                                |                                                              |                                                              |                        |
+
+```java
+public int getComponentCount();
+public Component[] getComponents();
+// 上面的方法官方建议在AWT tree lock下调用，即：
+Container container = ...;
+int componentCount = 0;
+synchronized (container.getTreeLock()){
+    componentCount = container.getComponentCount();
+    // ... other codes
+}
+// ... other codes
+```
+
+##### Window类
+
+##### MenuContainer接口
+
+
+
+##### Frame
+
+`Frame`代表一个窗口，在`Java`中一个简单的`Frame`展示如下，在这个窗口中，一般会被分成几大块：
+
+![image-20230110160140921](README/image-20230110160140921.png)
+
+一般我们的组件都是在窗口客户区上进行绘画。顶部的标题、图标和最大化最小化关闭按钮共同组成了装饰区（`frame decorations`）。
+
+窗口本身具有很多属性，可以通过`Setter`方法来设置这些属性（当然其中的部分也可以使用`Getter`来获取当前的值），设置了这些属性会让窗口有不同的表现。
+
+这些属性中大部分都有相关的`Setter`、`Getter`，大部分属性都有带`isXXX()`作为状态判别方法，小部分是`areXXX()`开头。
+
+属性参考下表：
+
+| 属性名                  | 类型                                    | 说明                                                         |
+| ----------------------- | --------------------------------------- | ------------------------------------------------------------ |
+| `alwaysOnTop`           | `boolean`                               | 是否总是显示在前端                                           |
+| `autoRequestFocus`      | `boolean`                               | 当窗口被激活的时候是否自动获取焦点                           |
+|                         | `ComponentOrientation`                  | 未知                                                         |
+| `ComponentZOrder`       | 参数1：Component<br />参数2：int：index | 窗口内组件刷新顺序。                                         |
+|                         | `Cursor`                                | 窗口内鼠标样式                                               |
+| `ExtendedState`         | `int`                                   | 窗口状态，如最大化、最小化等等                               |
+| `FocusableWindowState`  |                                         | 窗口是否可以获取焦点，这个方法会根据窗口状态来影响判断       |
+| `FocusTraversalKeys`    |                                         | 焦点切换按键                                                 |
+|                         |                                         |                                                              |
+|                         |                                         |                                                              |
+|                         |                                         |                                                              |
+|                         |                                         | 前景颜色                                                     |
+| `IconImage |IconImages` |                                         | 图标图像（可以设置多个）                                     |
+|                         |                                         |                                                              |
+| `Layout`                |                                         | 客户区组件布局                                               |
+| `Locale`                |                                         | `locale`，多语言支持的时候需要设置这个                       |
+| `Location`              |                                         | 窗口在屏幕中的位置                                           |
+| `LocationByPlatform`    |                                         | 是否由所在的平台来决定窗口位置                               |
+| `LocationRelativeTo`    |                                         | 窗口的父窗口                                                 |
+| `MaximizedBounds`       |                                         | 窗口的最大边界（窗口矩形）                                   |
+| `MaximumSize`           |                                         | 窗口的最大宽高                                               |
+| `MenuBar`               |                                         | 窗口菜单栏                                                   |
+| `MinimumSize`           |                                         | 窗口最小大小                                                 |
+| `ModalExclusionType`    |                                         | 窗口模态排除类型，一般情况下当一个窗口弹出一些信息框，那么那个窗口将会被阻塞，动不了，设置了这个属性，则窗口可能将不会被阻塞。 |
+| `Name`                  |                                         | 组件名称，注意区别与`setTitle()`，`setTitle`是设置标题，而这个是在相当于为窗口设置一个名字，一般用于标记窗口或组件。 |
+| `Opacity`               |                                         | 窗口透明度，值在`0.0f-1.0f`之间，需要注意，设置透明度需要先把窗口装饰区去掉，也就是`setUndecorated(true)` |
+| `PreferredSize`         |                                         | 组件更加偏向的大小，一般在布局的设置中会采用这个，注意设置组件的大小不一定就会起作用，`AWT`会计算组件的大小以更好适应布局情况 |
+| `Resizable`             |                                         | 窗口是否可拉伸                                               |
+| `Shape`                 |                                         | 窗口的形状                                                   |
+| `Size`                  |                                         | 窗口大小                                                     |
+| `State`                 |                                         | 窗口状态                                                     |
+| `Title`                 |                                         | 窗口标题                                                     |
+| `Type`                  |                                         | 窗口类型                                                     |
+| `Undecorated`           |                                         | 是否去除装饰区，当设置`true`则窗口最大化最小化，窗口标题，关闭按钮将被去除。 |
+| `Visible`               |                                         | 窗口可视                                                     |
+
+
+
+// 组件重要属性集
+
+// 事件处理
+
+// 布局集合
+
+##### Panel
+
+`Panel`，也叫面板，是用于存放其他组件的一个容器，一般情况下被用于划分功能相关的组件，调整组件布局等。但不能独立存在，只能被放置在窗口或者其他`Panel`中。
+
+##### ScrollPane
+
+
+
+
+
+##### 容器类组件添加删除组件
+
+// 补充说明
+
+几乎所有的容器类组件都有如下添加组件的方法：
+
+![image-20230224230315967](README/image-20230224230315967.png)
+
+作为容器类组件，你也可以往其内部添加任意的客户类组件，`Frame`等容器组件内部维护了一个`ArrayList`用来存放组件，这也就是为什么会有`index`参数（也叫`ComponentZOrder`，也有相关的`API`，后面会讲）的原因，容器内组件的前后关系可能会影响最终的渲染效果，越排在前面的组件（`index`越小）越晚进行绘制，因此小`index`的组件最终会覆盖掉大`index`的组件。
+
+```java
+// 将组件放到容器的最后，该组件将会被最先进行绘制
+public Component add(Component comp);
+// 将组件放到容器的最后，该组件将会被最先进行绘制,并且用一个字符串与该组件关联,该方法如今已过时但并没有标记@Deprecated，建议使用public void add(Component comp, Object constraints);
+public Component add(String name, Component comp);
+// 将组件放到容器组件列表的index位置中
+public Component add(Component comp, int index);
+// 上面三个方法返回值都是comp参数本身
+
+// 将指定组件添加到此容器的末尾。同时通知布局管理器使用指定的constraints对象将组件添加到容器的布局中。
+public void add(Component comp, Object constraints);
+// 将指定组件添加到此容器的index位置。同时通知布局管理器使用指定的constraints对象将组件添加到容器的布局中。
+public void add(Component comp, Object constraints, int index);
+
+// 添加弹出菜单
+public void add(PopupMenu popup);
+```
+
+所有的`add()`都是`addImpl()`的简便方法，`addImpl()`本身并不对外公开（`protected`），如果容器内部使用了布局类来管理组件的话，则`addImpl()`实际上会调用布局的`addLayoutComponent`方法来实现添加布局，具体参考容器组件布局章节。
+
+除了添加组件之外，你也可以讲将某个组件从容器组件中删除，`index`是上面提到的组件顺序。也可以使用`removeAll()`删除全部组件。![image-20230227164857941](README/image-20230227164857941.png)
+
+#####
+
+#### 客户区组件
+
+##### Button
+
+`AWT`的按钮组件！
+
+![image-20251128192423393](README/image-20251128192423393.png)
+
+
+
+属性表：
+
+| 属性              | 说明 | 类型                            | 获取方式               |
+| ----------------- | ---- | ------------------------------- | ---------------------- |
+| `ActionCommand`   |      | `String`                        | `Getter`<br />`Setter` |
+| `ActionListeners` |      | `java.awt.event.ActionListener` | `Getter`               |
+| `Label`           |      | `String`                        | `Getter`<br />`Setter` |
+
+
+
+##### Canvas
+
+##### checkbox
+
+##### choice
+
+##### label
+
+##### list
+
+##### scrollbar
+
+##### textarea
+
+##### textfield
+
+#### 菜单类组件
+
+
+
+#### 对话框类组件
+
+- Dialog
+- FileDialog
+
+
+
+
+
+
 
 
 
@@ -1331,6 +1370,20 @@ public static synchronized Toolkit getDefaultToolkit();
 ## 高级GUI设计
 
 本小节内容属于高级`GUI`内容，包括自定义组件
+
+### AWT组件原理
+
+> AWT如何实现跨平台？
+
+
+
+> AWT组件绘制（paintComponent、paint）、重绘（repaint）
+
+10.3.0
+
+
+
+
 
 ### 自定义AWT&Swing组件
 

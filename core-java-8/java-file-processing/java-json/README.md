@@ -16,8 +16,12 @@
 
 所有`Json`库的功能无外乎：
 
-- `Json`解析与转换（`Json`库的核心功能，包括`Json`与`Bean`的转换、`Java`类型和`Json`类型对应等）
-- `Json`库特性（包括库的一些工具类和注解使用、`Json`的`CRUD`、`Json`验证、`Json`格式化等）。所上面所有的库也是围绕这几块内容来进行介绍。
+- `Json`解析与转换（`Json`库的核心功能，将对象转换为`Json`或者将`Json`转为对象，这其中包括树形解析、流式解析、数据类型解析和绑定）
+    - 树形解析：传统`Json`解析和传统`XML`解析的原理是一致的，基本都是有两种解决方案，一种是将整个`Json`字符串以某个数据结构或者模型进行映射读入和写出（比如`XML`是采用树形结构，而`Json`的结构选择就很多了，除了树形结构之外，`HashMap`，`JavaBean`等亦可），一般我们称这种解析方式为树型解析。
+    - 流式解析：而另外一套只关心`Json`中某个特定的值，不需要完全加载所有`Json`到内存，基于事件驱动模型的解析方式，称为流式解析，流式解析在面对超大`Json`时，在解析速度和占用空间上都会有优势，但在写入时却异常麻烦。
+    - `XPATH`支持：而流式解析的天花板就是`XPATH(XML Path Language)`，即`XML`路径语言，这种语言广泛使用于`XML`，用类似文件路径的字符串，在`XML/HTML`里快速定位节点（元素、属性、文本），提取数据。这种路径语言仍然支持`Json`，只可惜原生`XPATH 1.0、2.0`并不支持`Json`，而是`XPATH 3.1`之后开始支持这种流式解析，而在`Json`解析库中，除了`FastJson`和`Jackson`之外基本没有支持`XPATH`的`Json`库。
+
+- `Json`库特性（包括库的一些工具类和注解使用、`Json`的`CRUD`、`Json`验证、`Json`格式化、`Json`和`XML`互转等）。所上面所有的库也是围绕这几块内容来进行介绍。
 
 > 注意：
 > 博主一直有一个困扰,，那就是FastXML到底是一家公司还是一个库, 因为在使用Json的库的时候，博主一直以为fastxml是阿里巴巴的一个开源库,导致傻傻分不清。
@@ -42,6 +46,12 @@
 而在`Gson`的子包中，还包含了一些基础功能：![image-20250606154237055](README/image-20250606154237055.png)
 
 #### 解析与转换
+
+`Gson`官方不支持`XPATH`解析，因此当需要使用`XPATH`时，我们可以借助第三方库`JsonPath`实现，但这已经和`Gson`无关。
+
+我们先尝试将`Json`和数据类型进行绑定式解析：
+
+##### 数据类型解析和绑定
 
 `Gson`库中核心用于解析和转换的类就是`Gson`类，该类可以直接`new Gson()`来使用：
 
@@ -206,7 +216,19 @@ public static TypeToken<?> getArray(Type componentType);
 public static TypeToken<?> getParameterized(Type rawType, Type... typeArguments);
 ```
 
-#### GsonBuilder（定制序列化规则）
+##### 树型解析
+
+
+
+
+
+##### 流式解析
+
+
+
+#### Gson库特性
+
+##### GsonBuilder（定制序列化规则）
 
 定制化`Gson`的一些设置可以使用`GsonBuilder`类，`GsonBuilder`类是一个专门实例化`Gson`实例的类，采用构建者模式实现，要创建一个`Gson`可以这样调用：
 
@@ -319,11 +341,7 @@ public GsonBuilder setVersion(double version);
 
    
 
-#### 树型解析、流式解析、数据类型解析和绑定
-
-
-
-#### 序列化和反序列化
+##### 序列化和反序列化
 
 
 
@@ -331,11 +349,11 @@ public GsonBuilder setVersion(double version);
 
 
 
-#### 原始Json字符串解析和创建
+##### 原始Json字符串解析和创建
 
 
 
-#### Gson中的注解
+##### Gson中的注解
 
 
 

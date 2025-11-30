@@ -1,8 +1,10 @@
 package cn.argento.askia.awt.core.components;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.AttributedCharacterIterator;
 
 /**
  * this example shows how to build a window！
@@ -26,5 +28,10 @@ public class AWTEmptyWindows1 extends Frame {
 
     public static void main(String[] args) {
         new AWTEmptyWindows1();
+    }
+
+    @Override
+    public void paint(Graphics g) {
+
     }
 }
