@@ -16,10 +16,10 @@ public class AlignmentExample extends JFrame {
         leftAlignedButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JButton centerAlignedButton = new JButton("Center Aligned");
-        centerAlignedButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerAlignedButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton rightAlignedButton = new JButton("Right Aligned");
-        rightAlignedButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rightAlignedButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
         // 添加组件到 JFrame
         add(leftAlignedButton);
@@ -31,6 +31,6 @@ public class AlignmentExample extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AlignmentExample());
+        SwingUtilities.invokeLater(AlignmentExample::new);
     }
 }

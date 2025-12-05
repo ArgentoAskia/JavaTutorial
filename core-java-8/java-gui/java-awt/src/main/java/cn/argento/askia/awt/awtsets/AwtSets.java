@@ -1,5 +1,6 @@
 package cn.argento.askia.awt.awtsets;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -205,26 +206,16 @@ class ButtonGroup {
             buttons[i] = new Button("按钮" + i);
             rootPanel.add(buttons[i]);
         }
+        initButtonsAttr();
+        initButtonsEvent();
     }
-    public ButtonGroup(int buttonCount, String buttonLabelPrefix){
-        this.buttonCount = buttonCount;
-        layoutManager = new FlowLayout(FlowLayout.LEFT, 10, 10);
-        rootPanel = new Panel(layoutManager);
-        buttons = new Button[buttonCount];
-        for (int i = 0; i < buttonCount; i++) {
-            buttons[i] = new Button(buttonLabelPrefix + i);
-            rootPanel.add(buttons[i]);
-        }
+
+    private void initButtonsEvent() {
+        buttons[0].addActionListener(e -> JOptionPane.showMessageDialog(null, "您触发了按钮事件..., 按钮的触发就这么简单"));
     }
-    public ButtonGroup(int buttonCount, String buttonLabelPrefix, LayoutManager layoutManager){
-        this.buttonCount = buttonCount;
-        this.layoutManager = layoutManager;
-        rootPanel = new Panel(layoutManager);
-        buttons = new Button[buttonCount];
-        for (int i = 0; i < buttonCount; i++) {
-            buttons[i] = new Button(buttonLabelPrefix + i);
-            rootPanel.add(buttons[i]);
-        }
+
+    private void initButtonsAttr() {
+        buttons[0].setLabel("点击此按钮将会触发按钮事件");
     }
 
     public void setup(Panel parent, String registerName){

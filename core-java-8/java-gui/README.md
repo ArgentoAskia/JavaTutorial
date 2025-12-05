@@ -731,9 +731,21 @@ public void removePropertyChangeListener(String propertyName,PropertyChangeListe
 
 #### 组件通用功能
 
-##### 组件对齐方式（AlignmentXY）
+此处我们介绍`Component`类中的通用的属性（功能）
 
+##### 组件对齐方式（AlignmentXY、Baseline）
 
+-   方向对齐（AlignmentX、AlignmentXY）
+
+-   基准线对齐（Baseline、BaselineResizeBehavior）
+
+##### 颜色（Background、Foreground）
+
+前景色（Foreground）、背景色（Background）
+
+##### 坐标（Bounds、）
+
+##### 组件定位（ComponentAt）
 
 #### 容器类组件
 
@@ -764,9 +776,6 @@ public void removePropertyChangeListener(String propertyName,PropertyChangeListe
 | `FocusTraversalPolicy`         | 焦点切换的方式，或者说焦点切换策略                           | `FocusTraversalPolicy`类型，提供`FocusTraversalPolicy`的子类：<br />![image-20240201184109005](README/image-20240201184109005.png) | Setter<br />Getter     |
 | `FocusTraversalPolicyProvider` | 是否开启设置焦点切换的方式！设置此容器是否用于提供焦点遍历策略。将此属性设置为`true`的容器用于获取焦点遍历策略，而不是最近的焦点循环根祖先 | `boolean`                                                    | Getter<br />Setter     |
 | `FocusTraversalPolicySet`      | 返回焦点遍历策略是否已为此容器显式设置。如果此方法返回`false`，则此容器将从祖先继承其焦点遍历策略。 |                                                              |                        |
-|                                |                                                              |                                                              |                        |
-|                                |                                                              |                                                              |                        |
-|                                |                                                              |                                                              |                        |
 
 ```java
 public int getComponentCount();
@@ -889,8 +898,6 @@ public void add(PopupMenu popup);
 
 除了添加组件之外，你也可以讲将某个组件从容器组件中删除，`index`是上面提到的组件顺序。也可以使用`removeAll()`删除全部组件。![image-20230227164857941](README/image-20230227164857941.png)
 
-#####
-
 #### 客户区组件
 
 ##### Button
@@ -899,15 +906,31 @@ public void add(PopupMenu popup);
 
 ![image-20251128192423393](README/image-20251128192423393.png)
 
-
-
 属性表：
 
-| 属性              | 说明 | 类型                            | 获取方式               |
-| ----------------- | ---- | ------------------------------- | ---------------------- |
-| `ActionCommand`   |      | `String`                        | `Getter`<br />`Setter` |
-| `ActionListeners` |      | `java.awt.event.ActionListener` | `Getter`               |
-| `Label`           |      | `String`                        | `Getter`<br />`Setter` |
+| 属性              | 说明                                                         | 类型                            | 获取方式               |
+| ----------------- | ------------------------------------------------------------ | ------------------------------- | ---------------------- |
+| `ActionCommand`   | 当按钮被触发时（比如点击了按钮），此属性会被发送到事件处理器中，代表触发的指令，默认情况下，此属性和`Label`值相同 | `String`                        | `Getter`<br />`Setter` |
+| `ActionListeners` | 按钮事件监听器，当按钮被触发时（比如点击了按钮），调用此监听器触发按钮事件 | `java.awt.event.ActionListener` | `Getter`               |
+| `Label`           | 按钮显示的文本，比如上面的"按钮0"、"按钮1"等                 | `String`                        | `Getter`<br />`Setter` |
+
+按钮的使用非常简单，我们只需要创建按钮对象，指定其`Label`属性，添加相应的监听器即可！`Button`按钮提供了两个构造器供你创建它的对象：
+
+```java
+public Button() throws HeadlessException;
+public Button(String label) throws HeadlessException;
+
+// 创建它的对象我们直接new即可
+Button b = new Button("您好");
+```
+
+在创建完对象之后，我们需要为此按钮添加一个事件监听器，我们会在后续的章节中介绍此事件监听器具体内容，在此处我们先学会如果使用事件监听器！
+
+基本所有的组件中都会有很多`addXXXXListener()`的方法，这些方法就是注册监听器的方法，当按钮被点击时就会触发相应的动作， 我们可以注册这些监听器：
+
+```
+
+```
 
 
 
@@ -1114,7 +1137,7 @@ public String toString();
 
 
 
-#### 事件源事件监听方法
+#### 事件源监听方法
 
 - `addComponentListener()`：
 - `addContainerListener()`：
@@ -1151,9 +1174,256 @@ public String toString();
 
 10.4
 
+#### 组合触发多个监听器
+
 
 
 #### 事件监听原理与事件触发原理
+
+此小节我们开始研究`AWT`事件监听底层机制，`AWT`事件监听机制自诞生以来基本覆盖`Java`图形化的所有迭代，哪怕后面的`Swing`和`JavaFX`，其事件监听仍然采用`AWT`的监听模型，本小节的内容基于个人研究，受`JDK`版本和个人能力有限，不完全准确，但基本方向是正确的。
+
+我们回顾按钮的事件产生过程：
+
+1.   创建一个事件监听器（`ActionListener`）,该监听器监听事件对象（`ActionEvent`）
+
+     ```java
+     ActionListener eventListener = new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+             System.out.println("Button clicked!");
+         }
+     }
+     ```
+
+2.   在按钮【事件源】上注册事件监听器（`addActionListener()`）
+
+     ```java
+     Button button = new Button("Click Me");
+     button.addActionListener(eventListener);
+     // Button内部为了一个ActionListener的数组
+     ```
+
+3.   用户点击按钮【事件源】，触发点击事件，创建`ActionEvent`对象
+
+4.   按钮调用执行监听器方法，遍历所有注册的`ActionListener`
+
+5.   每个`ActionListener`的`actionPerformed`方法被调用，传递创建的`ActionEvent`事件对象，执行自定义的事件处理逻辑。
+
+整个过程初看很好理解，即组件本身维护了事件监听器，并且在特定的过程中触发这些监听器而已，但是深究就能发现还有一个问题没有解决，即当用户点击按钮的时候，触发点击事件的过程是如何执行的，又是谁负责这个过程？
+
+由于`AWT`是重量级组件，他的所有组件都是基于本地操作系统来实现的，大部分的`AWT`组件代码都是`C`语言写的，因此当我们点击按钮时，触发按钮事件给我们的肯定也是操作系统，了解过`Windows`程序设计的朋友可能就会理解，当我们使用原生的`Win32 API`创建一个窗口的时候，通常需要定义一个窗口回调函数，这个函数内部就是对各种事件的处理，通常他的定义形式如下：
+
+```c
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        // 在这里进行绘制操作
+        EndPaint(hWnd, &ps);
+        return 0;
+    }
+    case WM_DESTROY:
+    {
+        PostQuitMessage(0);
+        return 0;
+    }
+    case WM_SIZE:
+    {
+        int width = LOWORD(lParam);
+        int height = HIWORD(lParam);
+        // 处理窗口大小改变逻辑
+        return 0;
+    }
+    case WM_MOVE:
+    {
+        int x = LOWORD(lParam);
+        int y = HIWORD(lParam);
+        // 处理窗口位置改变逻辑
+        return 0;
+    }
+    case WM_LBUTTONDOWN:
+    {
+        int x = LOWORD(lParam);
+        int y = HIWORD(lParam);
+        // 处理鼠标左键按下逻辑
+        return 0;
+    }
+    case WM_KEYDOWN:
+    {
+        int key = wParam;
+        // 处理按键逻辑
+        return 0;
+    }
+    case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        int wmEvent = HIWORD(wParam);
+        HWND hwndCtl = (HWND) lParam;
+        // 处理菜单项或控件的通知
+        return 0;
+    }
+    case WM_ACTIVATE:
+    {
+        int state = LOWORD(wParam);
+        HWND hwndOther = (HWND) lParam;
+        if (state == WA_INACTIVE) {
+            // 窗口被去激活
+        } else {
+            // 窗口被激活
+        }
+        return 0;
+    }
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+}
+```
+
+而其中，如果窗口包含按钮，则通常还需要处理`WM_COMMAND`事件，因此当`AWT`组件被触发的时候，首当其冲也是调用底层的`C`代码，而我们的监听器是写在`Java`代码中的，要触发我们`Java`代码中的监听器，就需要跨语言调用，而`AWT`中每一种组件都需要考虑这种调用，这不现实，因此需要一种模型能够实现这种跨端的调用。
+
+而常用的则是事件队列（`EventQueue`），几乎所有的`GUI`事件设计都会基于这种模型，该模型通过维护一个事件队列，将组件触发的所有事件都一一入队，然后通过外部的消费者消费事件队列中的事件的形式，来触发组件本身的事件动作，参考下图，而其中的消费者可以是单个（单线程消费），也可以是多个（多线程消费就更复杂了），这也就是广为流传的事件驱动模型：
+
+// todo 事件消费的图
+
+事件队列的好处是让系统只处理产生的事件，而无需要关注到底是谁触发了，并且将这个问题推给客户端代码来进行判断，大大减轻系统的压力的同时，提高了通用性。
+
+而在`Java`类库中，实际上也有这两个角色，你可以在`java.awt`找到下面两个类：
+
+-   `java.awt.EventQueue`：也就是事件队列
+-   `java.awt.EventDispatchThread`：实际的事件消费者，也叫`EDT`，`AWT`的事件队列就是基于`EDT`来消费的，单线程消费。
+
+这两个核心类共同组成了`AWT`事件系统的核心，底层操作系统不断地往`EventQueue`中仍事件，`EventDispatchThread`单线程启动死循环不断地消费事件队列中的事件。
+
+`EDT`的启动线程通常以`"AWT-EventQueue-X"`的名字驻留，我们可以随意运行一个`GUI`程序，然后使用`jstack`查看运行中的线程，比如我当前启动了一个`GUI`程序：![image-20251206000137029](README/image-20251206000137029.png)
+
+运行CMD，输入`jstack [PID]`：
+
+![image-20251206000241444](README/image-20251206000241444.png)
+
+输入：`jstack 91812`，会得到一堆信息，其中你会发现：![image-20251206000354409](README/image-20251206000354409.png)
+
+这个就是运行中的`EDT`线程，用以消费`EventQueue`中的事件。
+
+而除了这个`"AWT-EventQueue-0"`之外，你可能还发现了一个叫`AWT-Windows`的线程：![image-20251206004600231](README/image-20251206004600231.png)
+
+从线程的调用栈发现它并非`EventQueue`也和`EDT`没有关系，但从方法名中我们基本可以确定它和事件系统也有关系，这就得引出实际上参与`AWT`事件系统的类除了两大核心的`EventQueue`和`EDT`之外，还有两个辅助的类，即：
+
+-   `java.awt.AWTEventMulticaster`：
+-   `java.awt.Toolkit`：
+
+在了解了这些类之后，我们开始尝试还原整个事件监听处理过程，并深挖一些内容，来补充我们最开始按钮的事件产生过程中一些忽略掉的细节，我们根据时间线，将之前的`5`个步骤分为两个场景：编码期和运行期：
+
+>   编码期
+
+在编码期我们主要做了两件事情：
+
+1.   创建一个事件监听器（`ActionListener`）,该监听器监听事件对象（`ActionEvent`）
+
+     ```java
+     ActionListener eventListener = new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+             System.out.println("Button clicked!");
+         }
+     }
+     ```
+
+2.   在按钮【事件源】上注册事件监听器（`addActionListener()`）
+
+     ```java
+     Button button = new Button("Click Me");
+     button.addActionListener(eventListener);
+     // Button内部为了一个ActionListener的数组
+     ```
+
+     注册监听器的过程实际上靠`AWTEventMulticaster`来实现，该类也是典型的组合模式的应用，将多个监听器（包括`AWTEventMulticaster`自身）注册在一起，实现一个事件多个监听器监听！
+
+     ```java
+     public class Button extends Component implements Accessible{
+         
+         // Button类内部维护的唯一ActionListener，其真正实现可以是组合实现类AWTEventMulticaster的对象
+         transient ActionListener actionListener;
+     
+         public synchronized void addActionListener(ActionListener l) {
+             if (l == null) {
+                 return;
+             }
+             // 1.add方法的逻辑是当actionListener为null时返回l
+             // 2.当l为null时返回内部的actionListener本身（当然addActionListener()做了null判断，因此l为null是直接返回了）
+             // 3.如果actionListener和l都不为null, 则创建AWTEventMulticaster对象，存储actionListener和l，同时AWTEventMulticaster本身实现了actionPerformed()方法，内部调用actionListener和l的actionPerformed()方法，实现一个事件多个监听器监听
+             actionListener = AWTEventMulticaster.add(actionListener, l);
+             newEventsOnly = true;
+         }
+     }
+     ```
+
+自此，编码期的工作完成！
+
+>   运行期
+
+而当我们启动程序之后，接下来的步骤就很多了！当我们运行程序的时候，事件系统启动，两大核心类将会被初始化，其中，`EventQueue`对象会在`Toolkit`的子抽象类`SunToolkit`中被初始化：
+
+```java
+// 初始化EventQueue对象的方法
+private static void initEQ(AppContext var0) {
+    // 获取系统中指定的EventQueue实现类，默认是java.awt.EventQueue
+    String var2 = System.getProperty("AWT.EventQueueClass", "java.awt.EventQueue");
+
+    // 创建java.awt.EventQueue的真正实现
+    EventQueue var1;
+    try {
+        var1 = (EventQueue)Class.forName(var2).newInstance();
+    } catch (Exception var4) {
+        var4.printStackTrace();
+        System.err.println("Failed loading " + var2 + ": " + var4);
+        // 创建失败则使用java.awt.EventQueue默认实现
+        var1 = new EventQueue();
+    }
+
+    // 这里设计到AppContext，接下来讲解
+    // AppContext保存创建的java.awt.EventQueue和PostEventQueue对象供后续使用
+    var0.put(AppContext.EVENT_QUEUE_KEY, var1);
+    PostEventQueue var3 = new PostEventQueue(var1);
+    var0.put("PostEventQueue", var3);
+}
+```
+
+>   这里面涉及到`sun.awt.AppContext` 类，`sun.awt.AppContext` 是`Java AWT`（抽象窗口工具包）内部的一个核心类，主要功能是**为不同的“线程组”（ThreadGroup）提供隔离的应用程序服务存储空间**。它的核心设计目的是在类似浏览器的多`Applet`（小程序）环境中，保证关键资源（如事件队列、`UI`设置）相互隔离，防止不受信任的代码干扰或窃取其他Applet的数据。
+>
+>   ### 🆚 与其他“上下文”类的区别
+>
+>   为了更清晰地理解它的定位，可以看看它与常见的线程本地变量 `ThreadLocal` 的区别：
+>
+>   | 特性           | `sun.awt.AppContext`                                         | `ThreadLocal<T>`                                             |
+>   | :------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+>   | **设计目的**   | AWT框架内部使用，为每个ThreadGroup提供**一组共享的服务实例**（如事件队列、UI管理器） | 通用工具，为每个线程提供一个**独立的变量副本**，用于传递线程上下文。 |
+>   | **隔离级别**   | **ThreadGroup级别**。同一个ThreadGroup中的所有线程共享同一个AppContext。 | **Thread级别**。每个线程都有自己独立的数据副本。             |
+>   | **主要使用者** | **AWT/Swing框架本身**（例如存储 `EventQueue`）。普通应用程序开发**很少需要直接使用**。 | **应用程序开发者**，常用于Web开发中传递请求上下文、用户信息等。 |
+>   | **可见性**     | `sun` 包下的内部API，未来可能变化。                          | `java.lang` 包下的标准API，稳定。                            |
+>
+>   ### ⚙️ AppContext 的工作原理与生命周期
+>
+>   要理解AppContext，可以从其**创建、存储内容**和**生命周期**三个方面来看：
+>
+>   1.  **如何创建**
+>       AppContext通常**不是由开发者主动创建**的。当一个新线程首次调用AWT相关功能时，框架会根据其所属的 `ThreadGroup` 自动创建或关联一个AppContext。
+>   2.  **存储什么**
+>       它是一个基于 `HashMap` 的键值对存储容器。框架会将关键的AWT单例对象存入其中，例如使用 `AppContext.EVENT_QUEUE_KEY` 作为键来存储该上下文中唯一的 `EventQueue` 实例。
+>   3.  **何时销毁**
+>       当关联的ThreadGroup中所有线程都终止且没有可显示的窗口时，AppContext可以被标记为“已处置”并被垃圾回收。
+>
+>   ### ⚠️ 重要的使用须知
+>
+>   结合搜索结果，有两个关键点需要特别注意：
+>
+>   -   **避免在非图形界面环境中触发**：在Java 7.0.25及更高版本中，**调用 `sun.awt.AppContext.getAppContext()` 可能会初始化图形环境并启动一个名为“AWT-AppKit”的线程**。这对于无头（`headless`）服务器应用来说，可能导致意外的资源消耗或启动失败。Tomcat等服务器软件早期版本有专门机制来预防此问题。
+>   -   **注意潜在的内存泄漏**：虽然`AppContext`本身最终会被回收，但存储在其中的AWT组件（如JMenuBar）如果被长期持有引用，也可能导致内存无法及时释放。规范的实践是在窗口关闭时调用其 `dispose()` 方法，帮助清理相关资源。
+>
+>   总结来说，`sun.awt.AppContext` 是AWT实现多Applet安全隔离的底层基础设施，对普通应用开发者而言是“透明”的。理解它有助于你更深入地掌握AWT的线程模型，但通常无需在应用代码中直接操作。
+
+`AppContext`会实际调用`initEQ()`方法初始化`EventQueue`，`AppContext`的作用
 
 
 
@@ -1162,6 +1432,8 @@ public String toString();
 ### AWT图形、绘画
 
 // Graphics类、图形库
+
+// GDI（Graphics Devices Interface）
 
 
 
@@ -1176,6 +1448,8 @@ public String toString();
 
 
 #### 桌面环境
+
+
 
 所谓桌面环境即我们通过什么来交互系统，常见如类似于`Windows`系统这样的图形化界面环境，与之相对应的是终端命令环境，即所谓的命令行界面，而除了这两种常见的桌面环境之外，还有一类是无界面环境，没有任何交互和显示器，主机运行之后单独跑程序即可。
 
