@@ -28,7 +28,6 @@
         <module name="javax-csv" />
         <module name="java-jar" />
         <module name="javax-word" />
-        <module name="java-javafx" />
         <module name="java-zip" />
         <module name="javax-ast" />
         <module name="java-images" />
@@ -36,7 +35,6 @@
         <module name="java-stream" />
         <module name="core-java-9" />
         <module name="java-jdbc" />
-        <module name="java-native" />
         <module name="java-spi" />
         <module name="java-lang" />
         <module name="java-web-3-1-request-response-object" />

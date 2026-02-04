@@ -1,0 +1,56 @@
+//  并发结构
+BlockingDeque
+BlockingQueue
+ConcurrentMap
+ConcurrentNavigableMap
+TransferQueue
+
+ArrayBlockingQueue
+ConcurrentHashMap
+ConcurrentLinkedDeque
+ConcurrentLinkedQueue
+ConcurrentSkipListMap
+ConcurrentSkipListSet
+CopyOnWriteArrayList
+CopyOnWriteArraySet
+DelayQueue
+LinkedBlockingDeque
+LinkedBlockingQueue
+LinkedTransferQueue
+PriorityBlockingQueue
+SynchronousQueue
+
+// 线程池框架
+AbstractExecutorService
+Callable
+CompletableFuture
+CompletionService
+CompletionStage
+Delayed
+Executor
+ExecutorCompletionService
+Executors
+ExecutorService
+Future
+FutureTask
+RejectedExecutionHandler
+RunnableFuture
+RunnableScheduledFuture
+ScheduledExecutorService
+ScheduledFuture
+ScheduledThreadPoolExecutor
+ThreadFactory
+ThreadPoolExecutor
+
+// 执行器框架
+CountedCompleter
+ForkJoinPool
+ForkJoinTask
+ForkJoinWorkerThread
+RecursiveAction
+RecursiveTask
+
+// 部分工具类
+ThreadLocalRandom
+TimeUnit
+

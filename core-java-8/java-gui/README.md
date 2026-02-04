@@ -1178,6 +1178,12 @@ public String toString();
 
 
 
+#### 事件过滤机制
+
+
+
+
+
 #### 事件监听原理与事件触发原理
 
 此小节我们开始研究`AWT`事件监听底层机制，`AWT`事件监听机制自诞生以来基本覆盖`Java`图形化的所有迭代，哪怕后面的`Swing`和`JavaFX`，其事件监听仍然采用`AWT`的监听模型，本小节的内容基于个人研究，受`JDK`版本和个人能力有限，不完全准确，但基本方向是正确的。
@@ -1363,7 +1369,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 >   运行期
 
-而当我们启动程序之后，接下来的步骤就很多了！当我们运行程序的时候，事件系统启动，两大核心类将会被初始化，其中，`EventQueue`对象会在`Toolkit`的子抽象类`SunToolkit`中被初始化：
+而当我们启动程序之后，接下来的步骤就很多了！当我们运行程序的时候，事件系统启动，两大核心类的对象将会被初始化，其中，`EventQueue`对象的初始化代码在`Toolkit`的子抽象类`SunToolkit`中可以被找到：
 
 ```java
 // 初始化EventQueue对象的方法
@@ -1387,6 +1393,18 @@ private static void initEQ(AppContext var0) {
     var0.put(AppContext.EVENT_QUEUE_KEY, var1);
     PostEventQueue var3 = new PostEventQueue(var1);
     var0.put("PostEventQueue", var3);
+}
+```
+
+```java
+public static AppContext createNewAppContext() {
+    ThreadGroup var0 = Thread.currentThread().getThreadGroup();
+    return createNewAppContext(var0);
+}
+static final AppContext createNewAppContext(ThreadGroup var0) {
+    AppContext var1 = new AppContext(var0);
+    initEQ(var1);
+    return var1;
 }
 ```
 
@@ -1419,11 +1437,641 @@ private static void initEQ(AppContext var0) {
 >   结合搜索结果，有两个关键点需要特别注意：
 >
 >   -   **避免在非图形界面环境中触发**：在Java 7.0.25及更高版本中，**调用 `sun.awt.AppContext.getAppContext()` 可能会初始化图形环境并启动一个名为“AWT-AppKit”的线程**。这对于无头（`headless`）服务器应用来说，可能导致意外的资源消耗或启动失败。Tomcat等服务器软件早期版本有专门机制来预防此问题。
->   -   **注意潜在的内存泄漏**：虽然`AppContext`本身最终会被回收，但存储在其中的AWT组件（如JMenuBar）如果被长期持有引用，也可能导致内存无法及时释放。规范的实践是在窗口关闭时调用其 `dispose()` 方法，帮助清理相关资源。
+>   -   **注意潜在的内存泄漏**：虽然`AppContext`本身最终会被回收，但存储在其中的AWT组件（如`JMenuBar`）如果被长期持有引用，也可能导致内存无法及时释放。规范的实践是在窗口关闭时调用其 `dispose()` 方法，帮助清理相关资源。
 >
 >   总结来说，`sun.awt.AppContext` 是AWT实现多Applet安全隔离的底层基础设施，对普通应用开发者而言是“透明”的。理解它有助于你更深入地掌握AWT的线程模型，但通常无需在应用代码中直接操作。
 
-`AppContext`会实际调用`initEQ()`方法初始化`EventQueue`，`AppContext`的作用
+`AppContext`会实际调用`initEQ()`方法初始化`EventQueue`，`AppContext`的作用就是为整个`AWT`提供一个共享的服务实例存储，`AppContext`和`EventQueue`之间提供一种**双向绑定与查找、线程组驱动**的核心交互机制：
+
+1.   **以AppContext为容器**：每个`AppContext`实例都作为一个隔离的存储容器，其中**必须包含一个专属的`EventQueue`**。这个`EventQueue`以特定的键（`AppContext.EVENT_QUEUE_KEY`）存储在`AppContext`的内部哈希表中。
+
+2.   **EventQueue持有引用**：每个`EventQueue`对象在创建时，都会记录它所属的`AppContext`（通过一个`final`字段）。这形成了从事件队列到上下文的固定引用。
+
+3.   **通过ThreadGroup动态关联**：这是整个机制运转的关键。当一个线程（例如，调用`SwingUtilities.invokeLater()`的线程，此方法的作用是将`invokeLater()`的参数对象包装成事件对象扔进`EQ`中被`EDT`消费，签名见下）需要获取事件队列时，`AWT`会通过`AppContext.getAppContext()`来查找。该方法会**以当前线程的`ThreadGroup`为线索**，向上遍历其父线程组，从一个全局映射表（`threadGroup2appContext`）中找出对应的`AppContext`，进而找到其绑定的`EventQueue`。
+
+     ```java
+     // 我们整理整个invokeLater的调用过程
+     // SwingUtilities类
+     public static void invokeLater(Runnable runnable) {
+         // 获取EQ
+         Toolkit.getEventQueue()
+             // 将Runnable对象包装成InvocationEvent事件对象扔到EQ
+             .postEvent(new InvocationEvent(Toolkit.getDefaultToolkit(), runnable));
+     }
+     // Toolkit.getEventQueue()：
+     static EventQueue getEventQueue() {
+         // getDefaultToolkit()用于获取当前平台的Toolkit实现
+         // getSystemEventQueueImpl()在Toolkit中是一个抽象方法
+         return getDefaultToolkit().getSystemEventQueueImpl();
+     }
+     
+     protected abstract EventQueue getSystemEventQueueImpl();
+     // 我们找到SunToolkit实现类中，可以看到：
+     protected EventQueue getSystemEventQueueImpl() {
+         return getSystemEventQueueImplPP();
+     }
+     static EventQueue getSystemEventQueueImplPP() {
+         return getSystemEventQueueImplPP(AppContext.getAppContext());
+     }
+     public static EventQueue getSystemEventQueueImplPP(AppContext var0) {
+         EventQueue var1 = (EventQueue)var0.get(AppContext.EVENT_QUEUE_KEY);
+         return var1;
+     }
+     
+     // 而其中AppContext.getAppContext()是获取的整个核心，我们补充其中一些必要的字段说明
+     // AppContext中维护了一个Map和一个主AppContext, 其中threadGroup2appContext就是用于多Appcontext情况的，使用线程组进行区分，理论上多个线程只要属于同一个线程组，则都可以共享AppContext中的EventQueue
+     private static final Map<ThreadGroup, AppContext> threadGroup2appContext = Collections.synchronizedMap(new IdentityHashMap());
+     // 主AppContext
+     private static volatile AppContext mainAppContext = null;
+     // AppContext的数量
+     private static final AtomicInteger numAppContexts = new AtomicInteger(0);
+     // 线程AppContext缓存，如果当前线程曾经获取过AppContext，则会缓存在此处
+     private static final ThreadLocal<AppContext> threadAppContext = new ThreadLocal();
+     // 最关键的方法
+     public static final AppContext getAppContext() {
+         // 如果AppContext的数量只有一个且mainAppContext不空则直接返回mainAppContext
+         // 大部分独立桌面应用基本都满足这个条件返回mainAppContext
+         if (numAppContexts.get() == 1 && mainAppContext != null) {
+             return mainAppContext;
+         } else {
+             // 否则我们先尝试从ThreadLocal中获取线程上一次缓存的AppContext
+             AppContext var0 = (AppContext)threadAppContext.get();
+             // 如果当前线程之前没有调用过getAppContext(),没有缓存
+             if (null == var0) {
+                 var0 = (AppContext)AccessController.doPrivileged(new PrivilegedAction<AppContext>() {
+                     public AppContext run() {
+                         //  获取当前线程组
+                         ThreadGroup var1 = Thread.currentThread().getThreadGroup();
+                         ThreadGroup var2 = var1;
+                         synchronized(AppContext.getAppContextLock) {
+                             // 如果当前没有任何AppContext
+                             if (AppContext.numAppContexts.get() == 0) {
+                                 // 尝试初始化主AppContext
+                                 if (System.getProperty("javaplugin.version") == null && System.getProperty("javawebstart.version") == null) {
+                                     AppContext.initMainAppContext();
+                                 } else if (System.getProperty("javafx.version") != null && var2.getParent() != null) {
+                                     SunToolkit.createNewAppContext();
+                                 }
+                             }
+                         }
+     
+                         AppContext var3;
+                         // 向上遍历其父线程组，尝试从threadGroup2appContext全局引射表中寻找
+                         for(var3 = (AppContext)AppContext.threadGroup2appContext.get(var1); var3 == null; var3 = (AppContext)AppContext.threadGroup2appContext.get(var2)) {
+                             var2 = var2.getParent();
+                             // 当没有父线程组的时候，尝试使用SecurityManager的ThreadGroup来获取
+                             if (var2 == null) {
+                                 SecurityManager var4 = System.getSecurityManager();
+                                 if (var4 != null) {
+                                     ThreadGroup var5 = var4.getThreadGroup();
+                                     if (var5 != null) {
+                                         return (AppContext)AppContext.threadGroup2appContext.get(var5);
+                                     }
+                                 }
+                                 // SecurityManager == null时返回null
+                                 return null;
+                             }
+                         }
+                         
+                         // 到这里则说明var1线程组或者其父线程组已经找到一个AppContext
+                         // 从最初的var1父线程组到var1获取到AppContext的那个父线程组，依次将获取到的AppContext绑定
+                         for(ThreadGroup var7 = var1; var7 != var2; var7 = var7.getParent()) {
+                             AppContext.threadGroup2appContext.put(var7, var3);
+                         }
+                         // 缓存当前线程对应的AppContext
+                         AppContext.threadAppContext.set(var3);
+                         return var3;
+                     }
+                 });
+             }
+     
+             return var0;
+         }
+     }
+     
+     private static final void initMainAppContext() {
+         AccessController.doPrivileged(new PrivilegedAction<Void>() {
+             public Void run() {
+                 ThreadGroup var1 = Thread.currentThread().getThreadGroup();
+     
+                 for(ThreadGroup var2 = var1.getParent(); var2 != null; var2 = var2.getParent()) {
+                     var1 = var2;
+                 }
+     
+                 AppContext.mainAppContext = SunToolkit.createNewAppContext(var1);
+                 return null;
+             }
+         });
+     }
+     ```
+
+     处理过程如图：![ing](README/ing.png)
+
+对于大多数独立、标准的桌面应用程序，默认只会创建一个全局共享的`AppContext`实例（即`mainAppContext`），也就说只会有一个`EQ`被初始化，当你的`AWT/Swing`程序启动时，`JVM`会在初始化过程中自动执行以下操作（通常在`AppContext`类的静态初始化块中完成）：
+
+1.  获取**主线程（main）**的`ThreadGroup`。
+2.  为该`ThreadGroup`创建一个`AppContext`实例（`getAppContext()`）。
+3.  将其设置为**主应用上下文**（`mainAppContext`）。此后，应用程序中创建的所有`AWT`组件（窗口、按钮等）和线程（除非特殊情况），在通过`AppContext.getAppContext()`查询时，**返回的都是这个唯一的全局实例**
+
+>   那么何时才需要创建多个`AppContext`实例呢？
+>
+>   
+
+而`EDT`的初始化则是在`EventQueue`的`postEvent(AWTEvent theEvent)`方法被第一次调用往队列中添加了事件时进行，也就是说当队列中存在`AWTEvent`的子类事件对象的时候，`EventQueue`就会初始化`EDT`来消费自己队列上的事件：
+
+```java
+public void postEvent(AWTEvent theEvent) {
+    // 如果存在同事件源，同事件ID的事件，则冲刷掉这些阻塞的事件
+    SunToolkit.flushPendingEvents(appContext);
+    // 投递新的事件
+    postEventPrivate(theEvent);
+}
+
+/**
+ * Posts a 1.1-style event to the <code>EventQueue</code>.
+ * If there is an existing event on the queue with the same ID
+ * and event source, the source <code>Component</code>'s
+ * <code>coalesceEvents</code> method will be called.
+ *
+ * @param theEvent an instance of <code>java.awt.AWTEvent</code>,
+ *          or a subclass of it
+ */
+private final void postEventPrivate(AWTEvent theEvent) {
+    theEvent.isPosted = true;
+    pushPopLock.lock();
+    try {
+        if (nextQueue != null) {
+            // Forward the event to the top of EventQueue stack
+            nextQueue.postEventPrivate(theEvent);
+            return;
+        }
+        // 核心！！！如果判断dispatchThread为null时
+        if (dispatchThread == null) {
+            // 非自动关闭事件源
+            if (theEvent.getSource() == AWTAutoShutdown.getInstance()) {
+                return;
+            } else {
+                // 初始化EDT
+                initDispatchThread();
+            }
+        }
+        postEvent(theEvent, getPriority(theEvent));
+    } finally {
+        pushPopLock.unlock();
+    }
+}
+
+final void initDispatchThread() {
+    pushPopLock.lock();
+    try {
+        if (dispatchThread == null && !threadGroup.isDestroyed() && !appContext.isDisposed()) {
+            // 初始化EDT
+            dispatchThread = AccessController.doPrivileged(
+                new PrivilegedAction<EventDispatchThread>() {
+                    public EventDispatchThread run() {
+                        EventDispatchThread t =
+                            new EventDispatchThread(threadGroup,
+                                                        name,
+                                                        EventQueue.this);
+                        t.setContextClassLoader(classLoader);
+                        t.setPriority(Thread.NORM_PRIORITY + 1);
+                        t.setDaemon(false);
+                        AWTAutoShutdown.getInstance().notifyThreadBusy(t);
+                        return t;
+                    }
+                }
+            );
+            // EDT启动，进行消费
+            dispatchThread.start();
+        }
+    } finally {
+        pushPopLock.unlock();
+    }
+}
+```
+
+`EDT`启动之后，会不断得消费`EQ`中的`AWTEvent`，其调用参考：
+
+![image-20251210203011619](README/image-20251210203011619.png)
+
+```java
+public void run() {
+    try {
+        // 开始消费事件(内部是一个死循环)
+        pumpEvents(new Conditional() {
+            public boolean evaluate() {
+                return true;
+            }
+        });
+    } finally {
+        // 此步骤用于分离事件，即关闭EDT的同时开启新的EDT消费剩余的EQ中的事件（如果有的话）
+        getEventQueue().detachDispatchThread(this);
+    }
+}
+```
+
+`pumpEvents()`内部调用了很多辅助方法，这些方法如下，这是因为`AWT`中实际上支持事件过滤，也就是说我们可以指定`EDT`消费哪些事件，此功能我们在上一个章节中有介绍，我们只需要关注最后一个核心方法即可！
+
+```java
+void pumpEvents(Conditional cond) {
+    pumpEvents(ANY_EVENT, cond);
+}
+
+void pumpEventsForHierarchy(Conditional cond, Component modalComponent) {
+    pumpEventsForHierarchy(ANY_EVENT, cond, modalComponent);
+}
+
+void pumpEvents(int id, Conditional cond) {
+    pumpEventsForHierarchy(id, cond, null);
+}
+
+void pumpEventsForHierarchy(int id, Conditional cond, Component modalComponent) {
+    pumpEventsForFilter(id, cond, new HierarchyEventFilter(modalComponent));
+}
+
+void pumpEventsForFilter(Conditional cond, EventFilter filter) {
+    pumpEventsForFilter(ANY_EVENT, cond, filter);
+}
+
+// 最终调用
+void pumpEventsForFilter(int id, Conditional cond, EventFilter filter) {
+    // 添加事件过滤器【参考前一节】
+    addEventFilter(filter);
+    doDispatch = true;
+    // doDispatch一定满足
+    // isInterrupted()代表EDT线程是否中断，如果终端返回true,否则返回false
+    // cond.evaluate()只前面的条件运算结果，run()中它默认提供true
+	// 所以这个是真的死循环【理论上】，EDT的事件消费循环
+    while (doDispatch && !isInterrupted() && cond.evaluate()) {
+        // 这个id一般就是事件ID
+        pumpOneEventForFilters(id);
+    }
+    // 移除所有的事件过滤器
+    removeEventFilter(filter);
+}
+```
+
+而其中的`pumpOneEventForFilters()`：
+
+```java
+void pumpOneEventForFilters(int id) {
+    // AWTEvent
+    AWTEvent event = null;
+    boolean eventOK = false;
+    try {
+        EventQueue eq = null;
+        EventQueueDelegate.Delegate delegate = null;
+        do {
+            // EventQueue may change during the dispatching
+            eq = getEventQueue();
+            // 获取队列的委托队列(主要用于增强事件的处理，见下文)
+            delegate = EventQueueDelegate.getDelegate();
+            // 如果有委托队列则优先从委托队列中获取event
+            if (delegate != null && id == ANY_EVENT) {
+                event = delegate.getNextEvent(eq);
+            } else {
+                // 否则我们尝试直接调用队列的getNextEvent()获取下一个event
+                event = (id == ANY_EVENT) ? eq.getNextEvent() : eq.getNextEvent(id);
+            }
+			// 调用事件过滤器，如果过滤成功则返回true, 代表此事件可以被EDT消费
+            // 如果返回false，则代表此事件被拦截器拦截，则无法被EDT消费
+            // 一般情况下，无法通过拦截器的只有和底层事件有关，比如：键盘事件、鼠标事件等
+            // 这些事件只能委托底层C代码消费，可以看一下event.consume();方法，其内部对这些事件默认标记了消费
+            eventOK = filterAndCheckEvent(event);
+            // 如果是不能消费的事件
+            if (!eventOK) {
+                // 底层事件直接标记为消费
+                event.consume();
+            }
+        }
+        // 如果是不能消费的事件则我们在获取一次
+        while (eventOK == false);
+        
+        if (eventLog.isLoggable(PlatformLogger.Level.FINEST)) {
+            eventLog.finest("Dispatching: " + event);
+        }
+
+        Object handle = null;
+        // 处理分派事件之前
+        if (delegate != null) {
+            handle = delegate.beforeDispatch(event);
+        }
+        // 实际消费事件的方法
+        eq.dispatchEvent(event);
+        // 消费事件之后的增强
+        if (delegate != null) {
+            delegate.afterDispatch(event, handle);
+        }
+    }
+    catch (ThreadDeath death) {
+        doDispatch = false;
+        throw death;
+    }
+    catch (InterruptedException interruptedException) {
+        doDispatch = false; // AppContext.dispose() interrupts all
+                            // Threads in the AppContext
+    }
+    catch (Throwable e) {
+        processException(e);
+    }
+}
+```
+
+其中`EventQueueDelegate`是`EQ`的委托，该类主要为`EDT`消费事件提供消费前和消费后的方法增强调用：
+
+| 阶段       | 触发方法                   | 关键作用与能力                                               |
+| :--------- | :------------------------- | :----------------------------------------------------------- |
+| **分发前** | `beforeDispatch(AWTEvent)` | 事件即将被分发。**可以修改事件、更换事件源、甚至取消本次分发** |
+| **分发后** | `afterDispatch(AWTEvent)`  | 事件已完成分发。适合进行日志记录、性能监控或清理工作。       |
+
+`EDT`中获取事件的方式主要靠`EQ`的`getNextEvent()`方法：
+
+```java
+// 从事件队列中移除一个事件并返回，该方法会阻塞直到另外一个线程往EQ中投入了事件
+public AWTEvent getNextEvent() throws InterruptedException {
+    do {
+        /*
+         * SunToolkit.flushPendingEvents must be called outside
+         * of the synchronized block to avoid deadlock when
+         * event queues are nested with push()/pop().
+         */
+        SunToolkit.flushPendingEvents(appContext);
+        pushPopLock.lock();
+        try {
+            AWTEvent event = getNextEventPrivate();
+            // 有事件我们就返回
+            if (event != null) {
+                return event;
+            }
+            AWTAutoShutdown.getInstance().notifyThreadFree(dispatchThread);
+            // 阻塞
+            pushPopCond.await();
+        } finally {
+            pushPopLock.unlock();
+        }
+    } while(true);
+}
+
+/*
+ * Must be called under the lock. Doesn't call flushPendingEvents()
+ */
+AWTEvent getNextEventPrivate() throws InterruptedException {
+    //  基础的队列出队操作
+    for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+        if (queues[i].head != null) {
+            EventQueueItem entry = queues[i].head;
+            queues[i].head = entry.next;
+            if (entry.next == null) {
+                queues[i].tail = null;
+            }
+            uncacheEQItem(entry);
+            return entry.event;
+        }
+    }
+    return null;
+}
+```
+
+ 再者，就是过滤事件和底层事件的步骤（具体的`EventFilter.FilterAction`结果，可以自行参考类的描述）：
+
+```java
+boolean filterAndCheckEvent(AWTEvent event) {
+    boolean eventOK = true;
+    synchronized (eventFilters) {
+        // 获取所有过滤器
+        for (int i = eventFilters.size() - 1; i >= 0; i--) {
+            EventFilter f = eventFilters.get(i);
+            // 过滤
+            EventFilter.FilterAction accept = f.acceptEvent(event);
+            // 如果拒绝，则代表此事件不能被EDT消费
+            if (accept == EventFilter.FilterAction.REJECT) {
+                eventOK = false;
+                break;
+            } else if (accept == EventFilter.FilterAction.ACCEPT_IMMEDIATELY) {
+                break;
+            }
+        }
+    }
+    return eventOK && SunDragSourceContextPeer.checkEvent(event);
+}
+
+static enum FilterAction {
+    /**
+         * ACCEPT means that this filter do not filter the event and allowes other
+         * active filters to proceed it. If all the active filters accept the event, it
+         * is dispatched by the <code>EventDispatchThread</code>
+         * @see EventDispatchThread#pumpEventsForFilter
+         */
+    ACCEPT,
+    /**
+         * REJECT means that this filter filter the event. No other filters are queried,
+         * and the event is not dispatched by the <code>EventDispatchedThread</code>
+         * @see EventDispatchThread#pumpEventsForFilter
+         */
+    REJECT,
+    /**
+         * ACCEPT_IMMEDIATELY means that this filter do not filter the event, no other
+         * filters are queried and to proceed it, and it is dispatched by the
+         * <code>EventDispatchThread</code>
+         * It is not recommended to use ACCEPT_IMMEDIATELY as there may be some active
+         * filters not queried yet that do not accept this event. It is primarily used
+         * by modal filters.
+         * @see EventDispatchThread#pumpEventsForFilter
+         * @see ModalEventFilter
+         */
+    ACCEPT_IMMEDIATELY
+};
+```
+
+同时，`EQ`中的`consume()`暴露了哪些事件`EDT`无法处理：
+
+```java
+/**
+Consumes this event, if this event can be consumed. Only low-level, system events can be consumed
+*/
+protected void consume() {
+    switch(id) {
+      case KeyEvent.KEY_PRESSED:
+      case KeyEvent.KEY_RELEASED:
+      case MouseEvent.MOUSE_PRESSED:
+      case MouseEvent.MOUSE_RELEASED:
+      case MouseEvent.MOUSE_MOVED:
+      case MouseEvent.MOUSE_DRAGGED:
+      case MouseEvent.MOUSE_ENTERED:
+      case MouseEvent.MOUSE_EXITED:
+      case MouseEvent.MOUSE_WHEEL:
+      case InputMethodEvent.INPUT_METHOD_TEXT_CHANGED:
+      case InputMethodEvent.CARET_POSITION_CHANGED:
+          consumed = true;
+          break;
+      default:
+          // event type cannot be consumed
+    }
+}
+```
+
+最后，调用`eq.dispatchEvent(event);`（如果有`EQ`增强的话，还会调用增强方法）委托下一层级处理事件！
+
+```java
+protected void dispatchEvent(final AWTEvent event) {
+	// 获取事件源组件
+    final Object src = event.getSource();
+    final PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
+        public Void run() {
+            // In case fwDispatcher is installed and we're already on the
+            // dispatch thread (e.g. performing DefaultKeyboardFocusManager.sendMessage),
+            // dispatch the event straight away.
+            if (fwDispatcher == null || isDispatchThreadImpl()) {
+                // 分发事件
+                dispatchEventImpl(event, src);
+            } else {
+                fwDispatcher.scheduleDispatch(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dispatchThread.filterAndCheckEvent(event)) {
+                             // 分发事件
+                            dispatchEventImpl(event, src);
+                        }
+                    }
+                });
+            }
+            return null;
+        }
+    };
+
+    final AccessControlContext stack = AccessController.getContext();
+    final AccessControlContext srcAcc = getAccessControlContextFrom(src);
+    final AccessControlContext eventAcc = event.getAccessControlContext();
+    if (srcAcc == null) {
+        javaSecurityAccess.doIntersectionPrivilege(action, stack, eventAcc);
+    } else {
+        javaSecurityAccess.doIntersectionPrivilege(
+            new PrivilegedAction<Void>() {
+                public Void run() {
+                    javaSecurityAccess.doIntersectionPrivilege(action, eventAcc);
+                    return null;
+                }
+            }, stack, srcAcc);
+    }
+}
+```
+
+```java
+// 核心分发事件实现
+private void dispatchEventImpl(final AWTEvent event, final Object src) {
+    event.isPosted = true;
+    // 如果是ActiveEvent则使用setCurrentEventAndMostRecentTimeImpl处理
+    // 其中ActiveEvent 接口是 Java AWT 事件系统中一个特殊且强大的“自驱动”事件接口。它的核心特点是：事件对象自身知道如何被“执行”或“分发”，而不需要 EventDispatchThread (EDT) 像处理普通事件那样去查找事件源、调用监听器。
+    if (event instanceof ActiveEvent) {
+        // This could become the sole method of dispatching in time.
+        setCurrentEventAndMostRecentTimeImpl(event);
+        ((ActiveEvent)event).dispatch();
+    } else if (src instanceof Component) {
+        // 如果是组件事件则调用Component本身的dispatchEvent()方法触发
+        ((Component)src).dispatchEvent(event);
+        event.dispatched();
+    } else if (src instanceof MenuComponent) {
+        // 如果是菜单组件则调用MenuComponent的dispatchEvent()方法触发
+        ((MenuComponent)src).dispatchEvent(event);
+    } else if (src instanceof TrayIcon) {
+        // 如果是系统的托盘图标则使用TrayIcon的dispatchEvent()方法触发
+        ((TrayIcon)src).dispatchEvent(event);
+    } else if (src instanceof AWTAutoShutdown) {
+        // 关闭事件则停止分派
+        if (noEvents()) {
+            dispatchThread.stopDispatching();
+        }
+    } else {
+        if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
+            getEventLog().fine("Unable to dispatch event: " + event);
+        }
+    }
+}
+```
+
+>   `ActiveEvent` 接口是 Java AWT 事件系统中一个**特殊且强大**的“自驱动”事件接口。它的核心特点是：**事件对象自身知道如何被“执行”或“分发”**，而不需要 `EventDispatchThread` (EDT) 像处理普通事件那样去查找事件源、调用监听器。
+>
+>   `ActiveEvent`的文档中有提到这种机制：
+>
+>   ```
+>   An interface for events that know how to dispatch themselves. By implementing this interface an event can be placed upon the event queue and its dispatch() method will be called when the event is dispatched, using the EventDispatchThread.
+>   This is a very useful mechanism for avoiding deadlocks. If a thread is executing in a critical section (i.e., it has entered one or more monitors), calling other synchronized code may cause deadlocks. To avoid the potential deadlocks, an ActiveEvent can be created to run the second section of code at later time. If there is contention on the monitor, the second thread will simply block until the first thread has finished its work and exited its monitors.
+>   For security reasons, it is often desirable to use an ActiveEvent to avoid calling untrusted code from a critical thread. For instance, peer implementations can use this facility to avoid making calls into user code from a system thread. Doing so avoids potential deadlocks and denial-of-service attacks.
+>   ```
+>
+>   ### 🎯 核心机制：事件“自己分发自己”
+>
+>   理解 `ActiveEvent` 的关键在于与普通事件的对比。为了方便你更直观地对比这两者的核心区别，我将其整理为下表：
+>
+>   | 特性         | 普通 `AWTEvent` (如 `ActionEvent`)                           | `ActiveEvent`                                                |
+>   | :----------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+>   | **分发方式** | **被动**。由`EventDispatchThread` (EDT) 从队列取出，根据其事件源(`source`)查找并调用对应的监听器。 | **主动**。由事件对象**自身**的 `dispatch()` 方法完成所有处理逻辑。 |
+>   | **核心方法** | 无固定方法。监听器实现如 `actionPerformed(ActionEvent e)`。  | **`void dispatch()`**。这是接口唯一的方法，包含了事件要执行的全部代码。 |
+>   | **控制权**   | 在EDT和监听器手中。                                          | **在事件对象自己手中**。                                     |
+>   | **典型用途** | 响应用户交互（点击、打字）。                                 | 执行由EDT调度的异步任务（如`invokeLater`）、模态循环、系统内部信令。 |
+>
+>   **工作流程对比**：
+>
+>   -   **普通事件**：`EDT` -> 从队列 `getNextEvent()` -> 找到事件 `e` -> `dispatchEvent(e)` -> 根据 `e.getSource()` 找到目标组件 -> 调用该组件的监听器方法。
+>   -   **ActiveEvent**：`EDT` -> 从队列 `getNextEvent()` -> 找到事件 `e` (`ActiveEvent`实例) -> **直接调用 `e.dispatch()`**。
+>
+>   这种设计将“**要做什么**”（事件数据）和“**怎么做**”（执行逻辑）封装在同一个对象里，使事件拥有了完全的自主权。
+>
+>   ### 💡 核心价值与设计目的
+>
+>   `ActiveEvent` 的主要价值在于它提供了一种**在EDT上安全、有序地执行任意代码块**的标准机制。这解决了两个关键问题：
+>
+>   1.  **线程安全**：这是 `SwingUtilities.invokeLater()` 和 `invokeAndWait()` 的基石。你提交的 `Runnable` 会被包装成一个 `ActiveEvent`（具体是 `InvocationEvent`）并放入事件队列。当EDT处理到这个事件时，直接调用其 `dispatch()` 方法，该方法就是执行 `Runnable.run()`。这保证了代码一定在EDT线程执行。
+>   2.  **对事件循环的精细控制**：它允许事件携带复杂的逻辑，可以暂时“接管”或“影响”事件分发的流程。例如，用于实现模态对话框的 `ModalityEvent`，其 `dispatch()` 方法会处理模态状态的推入和弹出，管理 `EventQueue` 的 `push/pop` 操作。
+>
+>   ### 🔧 实现与典型应用
+>
+>   `ActiveEvent` 接口本身很简单，Java AWT 中有几个关键的内部类实现了它：
+>
+>   ```
+>   // ActiveEvent 接口定义
+>   public interface ActiveEvent {
+>       void dispatch();
+>   }
+>   
+>   // 关键实现类：InvocationEvent (用于 invokeLater)
+>   // 当你在非EDT线程调用 SwingUtilities.invokeLater(runnable) 时：
+>   // 1. 会创建一个 InvocationEvent 对象。
+>   // 2. 该对象的 dispatch() 方法内部就是调用 runnable.run()。
+>   // 3. 将此事件 post 到 EventQueue。
+>   // 4. EDT最终会调用此事件的 dispatch() 方法，从而安全地在EDT上执行你的代码。
+>   
+>   // 另一个关键实现：ModalityEvent (用于模态对话框)
+>   // 它的 dispatch() 方法负责处理模态层的 push/pop，与我们之前讨论的 EventQueue.push/pop 直接相关。
+>   ```
+>
+>   **主要应用场景**：
+>
+>   -   **`SwingUtilities.invokeXxx()` 系列方法**：这是最广泛的应用，确保了线程安全。
+>   -   **模态对话框与窗口阻塞**：`ModalityEvent` 利用它来管理模态状态和嵌套事件队列。
+>   -   **内部系统信令**：AWT 内部使用其他 `ActiveEvent` 子类在不同子系统间发送需要**立即执行特定动作**的信号。
+>
+>   ### 💎 总结与启示
+>
+>   总而言之，`ActiveEvent` 是一个**赋予事件对象自主行为能力的接口**。它通过将执行逻辑内置于事件本身，完美地支持了**在单一线程（EDT）上安全调度异步任务**这一核心需求，并成为实现模态等高级交互模型的底层基础。
+>
+>   理解 `ActiveEvent`，能让你从更本质的视角看懂 `invokeLater` 的工作原理，以及 AWT 事件系统如何优雅地处理线程间通信和复杂控制流。它再次体现了 AWT 在设计上**将不变的分发流程与可变的具体逻辑分离**的巧妙思想。
+>
+>   实际上这里基本可以看出，因为`ActiveEvent`这种事件的存在，`AWT`的所有内容基本都可以基于EDT和EQ这种事件模型来处理，包括`UI`的创建，`UI`的响应等等（因为可以将其包装成`InvocationEvent`对象扔进`EQ`中），这也是为什么到了`Swing`之后，`JDK`强制要求使用`invokeLater()`方法来初始化`UI`的原因，其一是使用这种机制可以完美代换时间，避免死锁，保证只有EDT线程执行`Swing`的内容，其二也是最核心的点，即Swing的所有组件都不是线程安全的（AWT的组件是重量级组件，基于平台本身，有锁，线程安全，所以可以直接在`main`线程上创建），而绘制组件的过程一般就通过事件来进行，由于main线程的启动和初始化EDT的启动顺序不一定，这就有可能导致EDT还在初始化时，但main线程的UI已经抛出大量的绘制事件，最终这些绘制事件得不到处理，也就没有窗口出现，而投递给EDT，让EDT执行则可以保证绘制事件出现在EDT初始化之后！
+
+因此，实际上`EDT`只负责获取事件方法的调用，真正分派事件、处理事件的还需要调用`EQ`的相关方法来实现，自此`AWT`事件系统初始化完成！我们终于回到第三步：用户点击按钮【事件源】，触发点击事件，创建`ActionEvent`对象。
+
+在上面的介绍中我们已经基本知道，`EQ`负责存储事件，`EDT`负责消费事件，并且大概了解其中`EDT`的消费过程，那么在`AWT`的组件中，到底谁负责将事件投放到`EQ`中呢？这个问题直接和我们第三步的有关，
+
+//  介绍底层事件--> AWTEvent转变
+
+// 介绍Toolkit的eventLoop()方法转换事件队列
+
+// AWTEventMulticaster事件代理
+
+
+
+
 
 
 
