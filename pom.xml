@@ -17,7 +17,16 @@
         <module>java-design-patterns</module>
         <module>java-apache-packages</module>
         <module>java-ee-mail</module>
+        <module>java-google-packages</module>
+        <module>java-eclipse-packages</module>
+        <module>java-three-party</module>
     </modules>
+
+
+
+    <properties>
+
+    </properties>
 
 
 </project>

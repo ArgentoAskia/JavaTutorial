@@ -1,0 +1,1 @@
+描述Eclipse基金会的Java框架和项目，比如AspectJ、Eclipse Collections、SWT等

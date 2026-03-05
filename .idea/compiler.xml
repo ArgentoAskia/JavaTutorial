@@ -13,6 +13,7 @@
         <module name="java-concurrent" />
         <module name="java-awt" />
         <module name="java-sound" />
+        <module name="java-google-packages" />
         <module name="java-test" />
         <module name="javax-excel" />
         <module name="java-annotation" />
@@ -25,6 +26,7 @@
         <module name="java-expressions" />
         <module name="java-web-2-2-annotation-servlet" />
         <module name="java-xml" />
+        <module name="java-three-party" />
         <module name="javax-csv" />
         <module name="java-jar" />
         <module name="javax-word" />
@@ -34,6 +36,7 @@
         <module name="java-io" />
         <module name="java-stream" />
         <module name="core-java-9" />
+        <module name="java-eclipse-packages" />
         <module name="java-jdbc" />
         <module name="java-spi" />
         <module name="java-lang" />

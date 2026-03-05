@@ -15,7 +15,7 @@ public class CMDDemo {
 //        String cmds = "cmd /C E:\\download\\BBDown\\BBDown.exe --work-dir E:\\download\\BBDown BV1BP411s7Rz --debug";
 //        String cmds = "C:\\Users\\asus\\Desktop\\tcping64.exe -t 127.0.0.1";
 
-        File tcping64Exe = new File("Java-Compiler/src/main/resources/tcping64.exe");
+        File tcping64Exe = new File("core-java-8/javax-tools/src/main/resources/tcping64.exe");
         final String tcping64ExeAbsolutePath = tcping64Exe.getAbsolutePath();
         System.out.println("tcping64.exe的位置：" + tcping64ExeAbsolutePath);
 
